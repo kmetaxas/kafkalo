@@ -22,3 +22,12 @@ Features
 - Optionally Produce equivalent shell script file to make changes outside app
 - Optional - Handle deletions
 - Optional - monitor resources and enforce/warn on non-compliance (resources managed outside of app)
+- Optional - Manage users in FreeIPA
+
+
+Required inputs
+===============
+
+- Schema registry URL
+- Kafka broker
+- MDS API
