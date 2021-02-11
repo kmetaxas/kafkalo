@@ -6,7 +6,8 @@ topics:
       cleanup.policy: delete
       min.insync.replicas: 1
       retension.ms: 10000000
-    schema: 
+    schema:
+      fromFile: "/path/to/file"
   - topic: SKATA.VROMIA.LIGO
     partitions: 6
     replication_factor: 3
