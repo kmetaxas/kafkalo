@@ -1,0 +1,33 @@
+topics:
+  - topic: SKATA.VROMIA.POLY
+    partitions: 6
+    replication_factor: 3
+    configs:
+      cleanup.policy: delete
+      min.insync.replicas: 1
+      retension.ms: 10000000
+    schema: 
+  - topic: SKATA.VROMIA.LIGO
+    partitions: 6
+    replication_factor: 3
+    configs:
+      cleanup.policy: delete
+      min.insync.replicas: 1
+clients:
+  - principal: User:poutanaola
+    consumer_for:
+      # By default we will use PREFIXED. 
+      # set prefixed: false to set it to LITERAL
+      - topic: TOPIC1.*
+      - topic: TOPIC2.*
+        prefixed: false
+    producer_for:
+      - TOPIC1.*
+    resourceowner_for:
+      - TOPIC1.*
+  - principal: Group:malakes
+    consumer_for:
+      - topic: TOPIC1.*
+      - TOPIC2.*
+    producer_for:
+      - TOPIC1.*
