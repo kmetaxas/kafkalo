@@ -47,10 +47,11 @@ class KafkaAdmin(object):
         # return the complete metadata object
         return metadata
 
-    def reconcile_topics(self, topics: List[Topic], dry_run=False):
+    def reconcile_topics(self, topics: List[Topic], dry_run=False, strict=False):
         """
         Reconsile configuration
         Create missing topics, and update configs.
+        :dry_run will not update anything
         """
         current_medatada = self.list_topics()
         existing_topic_names = set(current_medatada.topics.keys())
@@ -84,10 +85,10 @@ class KafkaAdmin(object):
             if topic.name in topic_failed:
                 continue
             if topic.configs:
-                self.alter_config_for_topic(topic.name, topic.configs)
+                self.alter_config_for_topic(topic.name, topic.configs, dry_run=dry_run)
         return (topics_created, topics_failed)
 
-    def alter_config_for_topic(self, topic, configs):
+    def alter_config_for_topic(self, topic, configs, dry_run=False):
         """
         Alter the configuration of a single topic
         """
@@ -102,7 +103,9 @@ class KafkaAdmin(object):
         resource = ConfigResource(restype=Type.TOPIC, name=topic)
         for key, value in new_config.items():
             resource.set_config(key, value)
-        fs = self.adminclient.alter_configs([resource])
+        fs = self.adminclient.alter_configs(
+            [resource], request_timeout=30, validate_only=dry_run
+        )
         # check result
 
         configs_altered = []
