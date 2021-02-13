@@ -47,27 +47,45 @@ class KafkaAdmin(object):
         # return the complete metadata object
         return metadata
 
-    def create_topics(self, topics: List[Topic], dry_run=False):
+    def reconcile_topics(self, topics: List[Topic], dry_run=False):
         """
-        Create Topics from a list
+        Reconsile configuration
+        Create missing topics, and update configs.
         """
+        current_medatada = self.list_topics()
+        existing_topic_names = set(current_medatada.topics.keys())
+        topic_names = set([x.name for x in topics])
+        new_topic_names = topic_names - existing_topic_names
+        skipped_topic_names = existing_topic_names & topic_names
+        print(f"Skipping topics {skipped_topic_names} as they already exist")
+
         new_topics = [
             NewTopic(topic.name, topic.partitions, topic.replication_factor)
             for topic in topics
+            if topic.name in new_topic_names
         ]
+
         # we get back a dict of {topic: future} that we can call the result on
         fs = self.adminclient.create_topics(
             new_topics, operation_timeout=10, validate_only=dry_run
         )
 
+        topic_failed = {}
+        topics_created = {}
         for topic, future in fs.items():
             try:
                 future.result()
-                print(f"Created topic {topic}")
+                topics_created[topic] = {}
             except Exception as e:
-                print(f"Failed to create topic {topic} with: {e}")
-
-        # TODO alter configs now
+                topic_failed[topic] = {"reason": str(e)}
+        print(f"Failed to create topics: {topic_failed}")
+        # now alter configs
+        for topic in topics:
+            if topic.name in topic_failed:
+                continue
+            if topic.configs:
+                self.alter_config_for_topic(topic.name, topic.configs)
+        return (topics_created, topics_failed)
 
     def alter_config_for_topic(self, topic, configs):
         """
@@ -86,12 +104,16 @@ class KafkaAdmin(object):
             resource.set_config(key, value)
         fs = self.adminclient.alter_configs([resource])
         # check result
+
+        configs_altered = []
+        configs_failed = []
         for res, future in fs.items():
             try:
                 future.result()
-                print(f"{res} successfuly altered")
+                configs_altered.append(res)
             except Exception as e:
-                print(f"Failed to set config: {e}")
+                configs_failed.append(res)
+        return (configs_altered, configs_failed)
 
     def describe_topic(self, topic: str):
         """
@@ -104,12 +126,12 @@ class KafkaAdmin(object):
         for res, future in fs.items():
             try:
                 configs = future.result()
-                for config in configs.values():
-                    print(f"Config {config.name} = {config.value}")
+                # for config in configs.values():
+                #    print(f"Topic {topic} -> {config.name} = {config.value}")
                 return configs
             except KafkaException as e:
                 print(f"Failed to to describe config for {res}")
-                return None
+                return {}
 
     def delete_topics(self, topics: List[Topic], dry_run=False):
         """
