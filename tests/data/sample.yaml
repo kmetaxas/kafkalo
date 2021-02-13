@@ -7,7 +7,10 @@ topics:
       min.insync.replicas: 1
       retension.ms: 10000000
     schema:
-      fromFile: "tests/data/schema.avro"
+      value:
+        fromFile: "tests/data/schema.json"
+      key:
+        fromFile: "tests/data/schema-key.json"
   - topic: SKATA.VROMIA.LIGO
     partitions: 6
     replication_factor: 3

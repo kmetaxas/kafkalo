@@ -6,6 +6,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from topics import Topic
+from schemas import Schema
 
 
 class InputParser(object):
@@ -33,6 +34,32 @@ class InputParser(object):
             )
             resp.append(topic)
         return resp
+
+    def get_schemas(self):
+        topics = self.get_topics()
+        schemas = []
+        for topic in topics:
+            if topic.schema:
+                if "key" in topic.schema:
+                    print("Found key")
+                    filename = topic.schema["key"].get("fromFile", None)
+                    if filename:
+                        with open(filename, "r") as fp:
+                            schema_data = fp.read()
+                            schema = Schema(
+                                subject_name=f"{topic.name}-key", schema=schema_data
+                            )
+                            schemas.append(schema)
+                if "value" in topic.schema:
+                    filename = topic.schema["value"].get("fromFile", None)
+                    if filename:
+                        with open(filename, "r") as fp:
+                            schema_data = fp.read()
+                            schema = Schema(
+                                subject_name=f"{topic.name}-value", schema=schema_data
+                            )
+                            schemas.append(schema)
+        return schemas
 
     def get_clients(self):
         """

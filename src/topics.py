@@ -9,7 +9,6 @@ Type = ConfigResource.Type
 class Topic(object):
     """
     Represents a single topic.
-    Manages itself
     """
 
     def __init__(self, name, partitions, replication_factor, configs=None, schema=None):
@@ -71,18 +70,18 @@ class KafkaAdmin(object):
             new_topics, operation_timeout=10, validate_only=dry_run
         )
 
-        topic_failed = {}
+        topics_failed = {}
         topics_created = {}
         for topic, future in fs.items():
             try:
                 future.result()
                 topics_created[topic] = {}
             except Exception as e:
-                topic_failed[topic] = {"reason": str(e)}
-        print(f"Failed to create topics: {topic_failed}")
+                topics_failed[topic] = {"reason": str(e)}
+        print(f"Failed to create topics: {topics_failed}")
         # now alter configs
         for topic in topics:
-            if topic.name in topic_failed:
+            if topic.name in topics_failed:
                 continue
             if topic.configs:
                 self.alter_config_for_topic(topic.name, topic.configs, dry_run=dry_run)
