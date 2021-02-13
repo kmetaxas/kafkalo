@@ -7,6 +7,9 @@ except ImportError:
 
 SAMPLE_PATH = "tests/data/sample.yaml"
 
+from inputparser import InputParser
+from topics import Topic
+
 
 def _read_file(fname=SAMPLE_PATH):
     with open(fname, "r") as fp:
@@ -24,3 +27,25 @@ def test_load():
         assert isinstance(topic["topic"], str)
     for client in yamldata["clients"]:
         assert client["principal"].split(":")[0] in ["User", "Group"]
+
+
+def test_inputparser_load():
+    parser = InputParser("tests/data/sample.yaml")
+    assert isinstance(parser, InputParser)
+
+
+def test_inputparser_get_topics():
+    parser = InputParser("tests/data/sample.yaml")
+    topics = parser.get_topics()
+    assert isinstance(topics, list)
+    for topic in topics:
+        assert isinstance(topic, Topic)
+    # make sure we get the same data as in sample
+    assert topics[0].name == "SKATA.VROMIA.POLY"
+    assert topics[0].partitions == 6
+    assert topics[0].replication_factor == 1
+    assert topics[0].configs != None
+    assert topics[0].configs["cleanup.policy"] == "delete"
+    assert topics[0].configs["min.insync.replicas"] == 1
+    assert topics[0].configs["retension.ms"] == 10000000
+    assert topics[0].schema["fromFile"] == "tests/data/schema.avro"
