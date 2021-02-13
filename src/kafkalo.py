@@ -19,4 +19,12 @@ if __name__ == "__main__":
     parser = InputParser("tests/data/sample.yaml")
     topic_admin.list_topics()
     topic_admin.create_topics(parser.get_topics())
-    topic_admin.delete_topics(parser.get_topics())
+    # topic_admin.delete_topics(parser.get_topics())
+    topic_admin.alter_config_for_topic(
+        "SKATA.VROMIA.POLY",
+        {
+            "cleanup.policy": "compact",
+        },
+    )
+
+    topic_admin.describe_topic("SKATA.VROMIA.POLY")

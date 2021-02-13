@@ -1,6 +1,9 @@
-from confluent_kafka.admin import AdminClient, NewTopic
+from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource
 from confluent_kafka import Consumer
+from confluent_kafka import KafkaException
 from typing import List
+
+Type = ConfigResource.Type
 
 
 class Topic(object):
@@ -63,6 +66,50 @@ class KafkaAdmin(object):
                 print(f"Created topic {topic}")
             except Exception as e:
                 print(f"Failed to create topic {topic} with: {e}")
+
+        # TODO alter configs now
+
+    def alter_config_for_topic(self, topic, configs):
+        """
+        Alter the configuration of a single topic
+        """
+
+        # First get existing configs.. so really "old config" at this stage
+        new_config = {
+            val.name: val.value for (key, val) in self.describe_topic(topic).items()
+        }
+        # And update with changed values to get real new config
+        new_config.update(configs)
+
+        resource = ConfigResource(restype=Type.TOPIC, name=topic)
+        for key, value in new_config.items():
+            resource.set_config(key, value)
+        fs = self.adminclient.alter_configs([resource])
+        # check result
+        for res, future in fs.items():
+            try:
+                future.result()
+                print(f"{res} successfuly altered")
+            except Exception as e:
+                print(f"Failed to set config: {e}")
+
+    def describe_topic(self, topic: str):
+        """
+        Return a list of configs for the provided topic name
+        """
+        resource = ConfigResource(restype=Type.TOPIC, name=topic)
+        fs = self.adminclient.describe_configs([resource])
+        if len(fs) != 1:
+            return f"describe_configs for a topic did not return a single response."
+        for res, future in fs.items():
+            try:
+                configs = future.result()
+                for config in configs.values():
+                    print(f"Config {config.name} = {config.value}")
+                return configs
+            except KafkaException as e:
+                print(f"Failed to to describe config for {res}")
+                return None
 
     def delete_topics(self, topics: List[Topic], dry_run=False):
         """
