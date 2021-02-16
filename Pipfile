@@ -11,6 +11,7 @@ fastavro = "*"
 pyyaml = "*"
 pytest = "*"
 environs = "*"
+click = "*"
 
 [requires]
 python_version = "3.8"
