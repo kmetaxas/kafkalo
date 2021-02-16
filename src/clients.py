@@ -43,16 +43,18 @@ class MDSAdmin(object):
         r = requests.get(self.url + "/security/1.0/metadataClusterId", auth=self.auth)
         return r.text
 
-    def do_consumer_for(self, topic, principal, prefixed=True):
+    def _set_kafka_rolebinding(self, topic, principal, roles: list, prefixed=True):
         """
-        Convenience method that assigns a set of permisions for a typical
-        reader client
+        Set the rolebindings listed in rolebindings for the given principal and
+        topic(s) in the Kafka cluster.
+        :roles a list of role nmes
+        :topic the topic or topic prefix
+        :principal the principal name.
         """
         context = self._get_context(MDSAdmin.CTX_KAFKA)
         patternType = "PREFIXED"
         if not prefixed:
             patternType = "LITERAL"
-        # TODO do resourcePatterns list for all topics listed if possible
         data = {
             "scope": context,
             "resourcePatterns": [
@@ -63,8 +65,7 @@ class MDSAdmin(object):
                 }
             ],
         }
-        consumer_roles = ["DeveloperRead"]
-        for roleName in consumer_roles:
+        for roleName in roles:
             try:
                 r = requests.post(
                     self.url
@@ -72,23 +73,33 @@ class MDSAdmin(object):
                     auth=self.auth,
                     json=data,
                 )
-                print("RESP=" + r.json())
                 r.raise_for_status()
-            except:
-                pass
+            except Exception as e:
+                print(f"Failed to set RBAC {role} for {principal} with error {e}")
+
+    def do_consumer_for(self, topic, principal, prefixed=True):
+        """
+        Convenience method that assigns a set of permisions for a typical
+        reader client
+        """
+        consumer_roles = ["DeveloperRead"]
+        self._set_kafka_rolebinding(topic, principal, consumer_roles, prefixed)
 
     def do_producer_for(self, topic, principal, prefixed=True):
         """
         Convenience method that assigns a set of permisions for a typical
         producer client
         """
-        pass
+        roles = ["DeveloperWrite"]
+        self._set_kafka_rolebinding(topic, principal, roles, prefixed)
 
     def do_resourceowner_for(self, topic, principal, prefixed=True):
         """
         Convenience method that assigns a set of permissions for a
         resourceowner. (read/write AND delegate)
         """
+        roles = ["ResourceOwner"]
+        self._set_kafka_rolebinding(topic, principal, roles, prefixed)
 
     def _get_context(self, ctx):
         """

@@ -10,12 +10,21 @@ class Schema(object):
     Represents a single Schema.
     """
 
-    def __init__(self, subject_name: str, schema: str):
+    def __init__(self, subject_name: str, schema: str, compatibility=None):
+        """
+        A Schema object
+        :subject_name the schema subject
+        :schema the schema representation
+        :compatibility the compatibility level. Set to python None object will
+        use the Schema registry default
+        """
+
         self.subject_name = subject_name
         self.schema_json = schema
         # TODO AVRO hardcoded. Fix this by adding a field to yaml and default
         # to AVRO
         self.schema = CPSchema(self.schema_json, "AVRO")
+        self.compatibility = compatibility
 
 
 class SchemaAdmin(object):

@@ -50,7 +50,9 @@ def test_inputparser_get_topics():
     assert topics[0].configs["min.insync.replicas"] == 1
     assert topics[0].configs["retension.ms"] == 10000000
     assert topics[0].schema["value"]["fromFile"] == "tests/data/schema.json"
+    assert topics[0].schema["value"]["compatibility"] == "BACKWARDS"
     assert topics[0].schema["key"]["fromFile"] == "tests/data/schema-key.json"
+    assert topics[0].schema["key"]["compatibility"] == "NONE"
 
 
 def test_inputparser_get_schemas():
@@ -60,3 +62,7 @@ def test_inputparser_get_schemas():
         assert isinstance(schema, Schema)
     assert schemas[0].subject_name == "SKATA.VROMIA.POLY-key"
     assert schemas[1].subject_name == "SKATA.VROMIA.POLY-value"
+    # Topic 1 has not compatibility set
+    assert schemas[0].compatibility == "NONE"
+    assert schemas[1].compatibility == "BACKWARDS"
+    assert schemas[2].compatibility == None

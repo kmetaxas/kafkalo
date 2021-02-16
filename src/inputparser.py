@@ -41,13 +41,15 @@ class InputParser(object):
         for topic in topics:
             if topic.schema:
                 if "key" in topic.schema:
-                    print("Found key")
                     filename = topic.schema["key"].get("fromFile", None)
                     if filename:
                         with open(filename, "r") as fp:
                             schema_data = fp.read()
                             schema = Schema(
                                 subject_name=f"{topic.name}-key", schema=schema_data
+                            )
+                            schema.compatibility = topic.schema["key"].get(
+                                "compatibility", None
                             )
                             schemas.append(schema)
                 if "value" in topic.schema:
@@ -57,6 +59,9 @@ class InputParser(object):
                             schema_data = fp.read()
                             schema = Schema(
                                 subject_name=f"{topic.name}-value", schema=schema_data
+                            )
+                            schema.compatibility = topic.schema["value"].get(
+                                "compatibility", None
                             )
                             schemas.append(schema)
         return schemas
