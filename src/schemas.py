@@ -57,10 +57,24 @@ class SchemaAdmin(object):
         failed_to_register = {}
         registered = []
         for schema in missing_schemas:
+            # Register schema
             try:
                 self.client.register_schema(schema.subject_name, schema.schema)
                 registered.append(schema)
             except SchemaRegistryError as e:
-                failed_to_register[topic.name] = {"schema": schema, "reason": str(e)}
+                failed_to_register[schema.subject_name] = {
+                    "schema": schema,
+                    "reason": str(e),
+                }
+            # Set compatibility of specified
+            if schema.compatibility:
+                try:
+                    self.client.set_compatibility(
+                        schema.subject_name, level=schema.compatibility
+                    )
+                except SchemaRegistryError as e:
+                    print(
+                        f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
+                    )
 
         print(f"Registered: {registered} and failed: {failed_to_register}")
