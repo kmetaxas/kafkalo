@@ -1,0 +1,17 @@
+# Configs to reach out all API endpoints
+connections:
+  kafka:
+    # look at librdkafka docs
+    bootstrap.servers: "localhost:9093"
+    group.id: "kafkalo_consumer"
+  schemaregistry:
+    url: "http://localhost:8081"
+    basic.auth.user.info: "user:password"
+  mds:
+    url: "http://localhost:8090"
+    username: "username"
+    password: "password"
+    schema-registry-cluster-id: "schemaregistry"
+
+# App specific configs
+kafkalo: {}

@@ -10,6 +10,7 @@ requests = "*"
 fastavro = "*"
 pyyaml = "*"
 pytest = "*"
+environs = "*"
 
 [requires]
 python_version = "3.8"
