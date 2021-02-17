@@ -29,7 +29,8 @@ def sync():
     schema_admin.reconcile_schemas(schemas)
 
     # TODO no reconcile yet for Clients...
-    mds_admin.do_consumer_for("SKATA", "arcanum")
+    # mds_admin.do_consumer_for("SKATA", "arcanum")
+    mds_admin.reconcile_roles(parser.get_clients())
 
 
 def get_admin_clients(config):

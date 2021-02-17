@@ -7,6 +7,7 @@ except ImportError:
 
 from topics import Topic
 from schemas import Schema
+from clients import Client
 
 
 class InputParser(object):
@@ -70,10 +71,15 @@ class InputParser(object):
         """
         Get the the client configuration
         """
-        pass
-
-    def create_rolebindings(self):
-        """
-        Create an rolebindigns defined in the YAML
-        """
-        pass
+        if "clients" not in self.data:
+            return None
+        clients = []
+        for client_dict in self.data["clients"]:
+            client = Client(
+                principal=client_dict["principal"],
+                consumer_for=client_dict.get("consumer_for", None),
+                producer_for=client_dict.get("producer_for", None),
+                resourceowner_for=client_dict.get("resourceowner_for", None),
+            )
+            clients.append(client)
+        return clients

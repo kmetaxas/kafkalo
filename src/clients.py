@@ -12,6 +12,7 @@ class Client(object):
     def __init__(
         self, principal, consumer_for=None, producer_for=None, resourceowner_for=None
     ):
+        self.principal = principal
         self.consumer_for = consumer_for
         self.producer_for = producer_for
         self.resourceowner_for = resourceowner_for
@@ -84,6 +85,7 @@ class MDSAdmin(object):
         """
         consumer_roles = ["DeveloperRead"]
         self._set_kafka_rolebinding(topic, principal, consumer_roles, prefixed)
+        # TODO add schema registry roles
 
     def do_producer_for(self, topic, principal, prefixed=True):
         """
@@ -132,3 +134,25 @@ class MDSAdmin(object):
         result = r.json()
         print(f"rolebinding list: {result}")
         return r.json()
+
+    def reconcile_roles(self, clients: List[Client]):
+        """
+        Iterate over Client list and reconcile current with desired
+        configuration
+        """
+        if not clients:
+            return
+        for client in clients:
+            principal = client.principal
+            if client.consumer_for:
+                for topic in client.consumer_for:
+                    print(f"Doing consumer_for {topic} {principal}")
+                    self.do_consumer_for(
+                        topic=topic["topic"],
+                        principal=principal,
+                        prefixed=topic.get("prefixed", True),
+                    )
+            if client.producer_for:
+                pass
+            if client.resourceowner_for:
+                pass

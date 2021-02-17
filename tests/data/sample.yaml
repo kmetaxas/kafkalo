@@ -32,12 +32,12 @@ clients:
       - topic: TOPIC2.*
         prefixed: false
     producer_for:
-      - TOPIC1.*
+      - topic: TOPIC1.*
     resourceowner_for:
-      - TOPIC1.*
+      - topic: TOPIC1.*
   - principal: Group:malakes
     consumer_for:
       - topic: TOPIC1.*
-      - TOPIC2.*
+      - topic: TOPIC2.*
     producer_for:
-      - TOPIC1.*
+      - topic: TOPIC1.*
