@@ -1,4 +1,5 @@
 from yaml import load
+from typing import List
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -8,16 +9,52 @@ except ImportError:
 from topics import Topic
 from schemas import Schema
 from clients import Client
+from pathlib import Path
 
 
 class InputParser(object):
     """
-    PArse the input YAML and feed it to the Admin
+    Parse the input YAML and feed it to the Admin
     """
 
-    def __init__(self, input_file):
-        with open(input_file, "r") as fp:
-            self.data = load(fp.read(), Loader=Loader)
+    def __init__(self, patterns: List[str]):
+        self.filenames = self._resolve_patterns(patterns)
+        self.data = self._load_and_merge(self.filenames)
+
+    def _load_and_merge(self, filenames: List[str]):
+        """
+        Load files and merge them into a big dictionary
+        """
+        merged_data = {}
+        for filename in filenames:
+            with open(filename, "r") as fp:
+                data = load(fp.read(), Loader=Loader)
+                # Now merge the keys
+                for key, values in data.items():
+                    if key not in merged_data:
+                        merged_data[key] = []
+                    # Test if a value already exists in merged data. This would
+                    # indicate multiple definitions for the same resource and
+                    # would overwite one unpredictable
+                    for value in values:
+                        if value in merged_data[key]:
+                            raise Exception(
+                                f"Resource {value} already declared elsewhere"
+                            )
+                    merged_data[key] += values
+        return merged_data
+
+    def _resolve_patterns(self, patterns: List[str]):
+        """
+        Iterate of the list of glob patterns and return a list of files to load
+        """
+
+        filenames = []
+        for pattern in patterns:
+            p = Path(pattern)
+            print(f"Getting filenames for root {p.parent} and glob {p.stem}")
+            filenames += list(p.parent.glob(p.stem))
+        return filenames
 
     def get_topics(self):
         """

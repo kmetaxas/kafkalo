@@ -5,38 +5,20 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-SAMPLE_PATH = "tests/data/sample.yaml"
+SAMPLE_PATH = ["tests/data/sample*.yaml"]
 
 from inputparser import InputParser
 from topics import Topic
 from schemas import Schema
 
 
-def _read_file(fname=SAMPLE_PATH):
-    with open(fname, "r") as fp:
-        data = fp.read()
-    return data
-
-
-def test_load():
-    data = _read_file()
-    yamldata = load(data, Loader=Loader)
-    assert isinstance(yamldata["clients"], list)
-    assert isinstance(yamldata["topics"], list)
-
-    for topic in yamldata["topics"]:
-        assert isinstance(topic["topic"], str)
-    for client in yamldata["clients"]:
-        assert client["principal"].split(":")[0] in ["User", "Group"]
-
-
 def test_inputparser_load():
-    parser = InputParser("tests/data/sample.yaml")
+    parser = InputParser(SAMPLE_PATH)
     assert isinstance(parser, InputParser)
 
 
 def test_inputparser_get_topics():
-    parser = InputParser("tests/data/sample.yaml")
+    parser = InputParser(SAMPLE_PATH)
     topics = parser.get_topics()
     assert isinstance(topics, list)
     for topic in topics:
@@ -56,7 +38,7 @@ def test_inputparser_get_topics():
 
 
 def test_inputparser_get_schemas():
-    parser = InputParser("tests/data/sample.yaml")
+    parser = InputParser(SAMPLE_PATH)
     schemas = parser.get_schemas()
     for schema in schemas:
         assert isinstance(schema, Schema)
@@ -66,3 +48,10 @@ def test_inputparser_get_schemas():
     assert schemas[0].compatibility == "NONE"
     assert schemas[1].compatibility == "BACKWARDS"
     assert schemas[2].compatibility == None
+
+
+def test_resolve_patterns():
+    patterns = [
+        "tests/data/patterns/*.yaml",
+    ]
+    parser = InputParser(patterns)
