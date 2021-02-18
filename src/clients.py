@@ -146,7 +146,6 @@ class MDSAdmin(object):
             principal = client.principal
             if client.consumer_for:
                 for topic in client.consumer_for:
-                    print(f"Doing consumer_for {topic} {principal}")
                     self.do_consumer_for(
                         topic=topic["topic"],
                         principal=principal,

@@ -53,3 +53,8 @@ class Config(object):
 
     def get_mds_config(self):
         return self.config["connections"]["mds"]
+
+    def get_input_patterns(self):
+        if "kafkalo" in self.config:
+            return self.config["kafkalo"].get("input_dirs", None)
+        return None

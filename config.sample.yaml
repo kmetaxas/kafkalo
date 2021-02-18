@@ -14,4 +14,8 @@ connections:
     schema-registry-cluster-id: "schemaregistry"
 
 # App specific configs
-kafkalo: {}
+kafkalo:
+  input_dirs:
+    - "data/*"
+    - "data/team2.yaml"
+

@@ -22,7 +22,7 @@ def sync():
     config = Config()
     topic_admin, schema_admin, mds_admin = get_admin_clients(config)
     # Reconcile topics
-    parser = InputParser("tests/data/sample.yaml")
+    parser = InputParser(config.get_input_patterns())
     topic_admin.reconcile_topics(parser.get_topics())
     # Reconcile schemas
     schemas = parser.get_schemas()
