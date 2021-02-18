@@ -130,7 +130,13 @@ class MDSAdmin(object):
         producer client
         """
         roles = ["DeveloperWrite"]
-        self._set_kafka_rolebinding(topic, principal, roles, prefixed)
+        self._set_rolebinding(
+            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, roles, prefixed
+        )
+        # add schema registry roles
+        self._set_rolebinding(
+            MDSAdmin.CTX_SR, "Subject", topic, principal, roles, prefixed
+        )
 
     def do_resourceowner_for(self, topic, principal, prefixed=True):
         """
@@ -138,7 +144,13 @@ class MDSAdmin(object):
         resourceowner. (read/write AND delegate)
         """
         roles = ["ResourceOwner"]
-        self._set_kafka_rolebinding(topic, principal, roles, prefixed)
+        self._set_rolebinding(
+            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, roles, prefixed
+        )
+        # add schema registry roles
+        self._set_rolebinding(
+            MDSAdmin.CTX_SR, "Subject", topic, principal, roles, prefixed
+        )
 
     def _get_context(self, ctx):
         """
