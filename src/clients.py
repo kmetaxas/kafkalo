@@ -12,6 +12,9 @@ class Client(object):
     def __init__(
         self, principal, consumer_for=None, producer_for=None, resourceowner_for=None
     ):
+        if ":" not in principal or principal.split(":")[0] not in ["User", "Group"]:
+            raise Exception("Principal {principal} not in the form User/Group:<name>")
+
         self.principal = principal
         self.consumer_for = consumer_for
         self.producer_for = producer_for
@@ -74,8 +77,6 @@ class MDSAdmin(object):
         :prefixed Use prefixed rolebinding (defaults to true)
         :dry_run don't change but record in dry_run_plan
         """
-        if ":" not in principal or principal.split(":")[0] not in ["User", "Group"]:
-            raise Exception("Principal {principal} not in the form User/Group:<name>")
 
         context = self._get_context(ctx)
         patternType = "PREFIXED"
@@ -207,6 +208,16 @@ class MDSAdmin(object):
                         prefixed=topic.get("prefixed", True),
                     )
             if client.producer_for:
-                pass
+                for topic in client.producer_for:
+                    self.do_producer_for(
+                        topic=topic["topic"],
+                        principal=principal,
+                        prefixed=topic.get("prefixed", True),
+                    )
             if client.resourceowner_for:
-                pass
+                for topic in client.resourceowner_for:
+                    self.do_resourceowner_for(
+                        topic=topic["topic"],
+                        principal=principal,
+                        prefixed=topic.get("prefixed", True),
+                    )
