@@ -34,7 +34,7 @@ clients:
     producer_for:
       - topic: TOPIC1.
     resourceowner_for:
-      - topic: TOPIC1.
+      - topic: TOPIC4.
   - principal: Group:malakes
     consumer_for:
       - topic: TOPIC1.

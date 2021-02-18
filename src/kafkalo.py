@@ -6,6 +6,7 @@ from inputparser import InputParser
 import yaml
 from config import Config
 from clients import MDSAdmin
+from report import Report
 import click
 
 
@@ -38,7 +39,9 @@ def sync(dry_run):
     # mds_admin.do_consumer_for("SKATA", "arcanum")
     mds_admin.reconcile_roles(parser.get_clients(), dry_run=dry_run)
     if dry_run:
-        print(mds_admin.get_dry_run_plan())
+        client_context = mds_admin.get_dry_run_plan()
+        report = Report(client_context=client_context)
+        print(report.render())
 
 
 def get_admin_clients(config):

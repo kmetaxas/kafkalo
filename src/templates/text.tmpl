@@ -1,0 +1,11 @@
+Dry run report:
+
+Topics:
+
+Schemas:
+
+Clients: {{clients}}
+{% for rolebinding in clients["rolebindings"] %}
+- Allow {{rolebinding.principal|safe}} role {{rolebinding.role}} to {{rolebinding.resourcePatterns[0].resourceType}} named {{rolebinding.resourcePatterns[0].name}} in {{rolebinding.resourcePatterns[0].patternType}} mode
+{% endfor %}
+This is a template {{skata}}

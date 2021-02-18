@@ -12,6 +12,7 @@ pyyaml = "*"
 pytest = "*"
 environs = "*"
 click = "*"
+jinja2 = "*"
 
 [requires]
 python_version = "3.8"
