@@ -1,4 +1,5 @@
 from yaml import load, dump
+import pytest
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -7,7 +8,7 @@ except ImportError:
 
 SAMPLE_PATH = ["tests/data/sample*.yaml"]
 
-from inputparser import InputParser
+from inputparser import InputParser, DuplicateResourceException
 from topics import Topic
 from schemas import Schema
 
@@ -55,3 +56,10 @@ def test_resolve_patterns():
         "tests/data/patterns/*.yaml",
     ]
     parser = InputParser(patterns)
+    assert isinstance(parser, InputParser)
+
+    patterns2 = patterns + ["tests/data/patterns/faildir/*.yaml"]
+    with pytest.raises(DuplicateResourceException) as e:
+        parser = InputParser(patterns2)
+        print(e.value)
+        assert "already declared" in str(e.value)

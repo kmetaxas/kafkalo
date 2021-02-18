@@ -12,6 +12,15 @@ from clients import Client
 from pathlib import Path
 
 
+class DuplicateResourceException(Exception):
+    """
+    Genarated with a yaml contains a resource defiition already declared in
+    somewhere else.
+    """
+
+    pass
+
+
 class InputParser(object):
     """
     Parse the input YAML and feed it to the Admin
@@ -38,7 +47,7 @@ class InputParser(object):
                     # would overwite one unpredictable
                     for value in values:
                         if value in merged_data[key]:
-                            raise Exception(
+                            raise DuplicateResourceException(
                                 f"Resource {value} already declared elsewhere"
                             )
                     merged_data[key] += values
@@ -52,8 +61,12 @@ class InputParser(object):
         filenames = []
         for pattern in patterns:
             p = Path(pattern)
-            print(f"Getting filenames for root {p.parent} and glob {p.stem}")
-            filenames += list(p.parent.glob(p.stem))
+            # TODO handle case where we get a specific file and not a glob
+            # pattern as a stem
+            if "*" not in p.stem:
+                filename.append(pattern)
+            else:
+                filenames += [x for x in p.parent.glob(p.stem) if not Path(x).is_dir()]
         return filenames
 
     def get_topics(self):
