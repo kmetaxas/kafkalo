@@ -43,7 +43,7 @@ class SchemaAdmin(object):
         missing_schemas = []
         found_schemas = []
         for schema in schemas:
-            # Does it exist
+            # Does it exist (with same schema content?)
             try:
                 found_schema = self.client.lookup_schema(
                     schema.subject_name, schema.schema
@@ -51,6 +51,8 @@ class SchemaAdmin(object):
                 found_schemas.append(found_schema)
             except SchemaRegistryError as e:
                 missing_schemas.append(schema)
+            # TODO does it also have the requested compatibility mode? Don't
+            # miss updating the compatibility
 
         print(f"Found schemas {found_schemas} but we are missing {missing_schemas}")
 
