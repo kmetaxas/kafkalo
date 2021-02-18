@@ -15,7 +15,13 @@ def cli():
 
 
 @click.command()
-def sync():
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Don't change anything but do a dry run",
+)
+def sync(dry_run):
     """
     Synchronize Kafka config to YAML files
     """
@@ -23,14 +29,14 @@ def sync():
     topic_admin, schema_admin, mds_admin = get_admin_clients(config)
     # Reconcile topics
     parser = InputParser(config.get_input_patterns())
-    topic_admin.reconcile_topics(parser.get_topics())
+    topic_admin.reconcile_topics(parser.get_topics(), dry_run=dry_run)
     # Reconcile schemas
     schemas = parser.get_schemas()
-    schema_admin.reconcile_schemas(schemas)
+    schema_admin.reconcile_schemas(schemas, dry_run=dry_run)
 
     # TODO no reconcile yet for Clients...
     # mds_admin.do_consumer_for("SKATA", "arcanum")
-    mds_admin.reconcile_roles(parser.get_clients())
+    mds_admin.reconcile_roles(parser.get_clients(), dry_run=dry_run)
 
 
 def get_admin_clients(config):

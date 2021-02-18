@@ -39,20 +39,45 @@ class MDSAdmin(object):
         )
         self.connect_cluster_id = mds_config.get("connect-cluster-id", None)
         self.ksql_cluster_id = mds_config.get("ksql-cluster-id", None)
+        # If dry_run is enabld then each method that actually modifies
+        # resources will record its plan in this data structure. We can then
+        # use this to present a nice plan to the user (for example with a
+        # Jinja2 template)
+        self.dry_run_plan = {}
+        self.resource_types = ("Topic", "Group", "Cluster", "Subject")
+
+    def get_dry_run_plan(self):
+        return self.dry_run_plan
 
     def get_kafka_cluster_id(self):
         r = requests.get(self.url + "/security/1.0/metadataClusterId", auth=self.auth)
         return r.text
 
-    def _set_kafka_rolebinding(self, topic, principal, roles: list, prefixed=True):
+    def _set_rolebinding(
+        self,
+        ctx,
+        resource_type: str,
+        resource_name: str,
+        principal: str,
+        roles: list,
+        prefixed=True,
+        dry_run=False,
+    ):
         """
         Set the rolebindings listed in rolebindings for the given principal and
-        topic(s) in the Kafka cluster.
-        :roles a list of role nmes
-        :topic the topic or topic prefix
+        resource type.
+        :ctx context (Kafka, schema registry etc. as defined in MDSAdmin.CTX_*)
+        :resource_type Topic,Group,Cluster etc
+        :resource_name the name of the resource. (name of topic or subject)
         :principal the principal name.
+        :roles a list of role nmes
+        :prefixed Use prefixed rolebinding (defaults to true)
+        :dry_run don't change but record in dry_run_plan
         """
-        context = self._get_context(MDSAdmin.CTX_KAFKA)
+        if ":" not in principal or principal.split(":")[0] not in ["User", "Group"]:
+            raise Exception("Principal {principal} not in the form User/Group:<name>")
+
+        context = self._get_context(ctx)
         patternType = "PREFIXED"
         if not prefixed:
             patternType = "LITERAL"
@@ -60,23 +85,30 @@ class MDSAdmin(object):
             "scope": context,
             "resourcePatterns": [
                 {
-                    "resourceType": "Topic",
-                    "name": topic,
+                    "resourceType": resource_type,
+                    "name": resource_name,
                     "patternType": patternType,
                 }
             ],
         }
         for roleName in roles:
-            try:
-                r = requests.post(
-                    self.url
-                    + f"/security/1.0/principals/User:{principal}/roles/{roleName}/bindings",
-                    auth=self.auth,
-                    json=data,
-                )
-                r.raise_for_status()
-            except Exception as e:
-                print(f"Failed to set RBAC {role} for {principal} with error {e}")
+            if not dry_run:
+                try:
+                    r = requests.post(
+                        self.url
+                        + f"/security/1.0/principals/{principal}/roles/{roleName}/bindings",
+                        auth=self.auth,
+                        json=data,
+                    )
+                    r.raise_for_status()
+                except Exception as e:
+                    print(
+                        f"Failed to set RBAC {roleName} for {principal} with error {r.text}"
+                    )
+            else:
+                # TODO Record dry_run
+                print("TODO record plan for rolebinding")
+                pass
 
     def do_consumer_for(self, topic, principal, prefixed=True):
         """
@@ -84,8 +116,13 @@ class MDSAdmin(object):
         reader client
         """
         consumer_roles = ["DeveloperRead"]
-        self._set_kafka_rolebinding(topic, principal, consumer_roles, prefixed)
-        # TODO add schema registry roles
+        self._set_rolebinding(
+            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, consumer_roles, prefixed
+        )
+        # add schema registry roles
+        self._set_rolebinding(
+            MDSAdmin.CTX_SR, "Subject", topic, principal, consumer_roles, prefixed
+        )
 
     def do_producer_for(self, topic, principal, prefixed=True):
         """
@@ -105,7 +142,8 @@ class MDSAdmin(object):
 
     def _get_context(self, ctx):
         """
-        Generate a context to be used as param for MDS API
+        Generate a context dict suitable to be used as param for MDS API
+        :ctx the context type (schema registry, kafka etc) as defined in MDSAdmin.CTX_*
         """
         context = {
             "clusters": {
@@ -115,19 +153,21 @@ class MDSAdmin(object):
         if ctx == MDSAdmin.CTX_KAFKA:
             return context
         if ctx == MDSAdmin.CTX_SR:
-            context["kafka-schema-registry-cluster"] = self.schema_registry_cluster_id
+            context["clusters"][
+                "schema-registry-cluster"
+            ] = self.schema_registry_cluster_id
             return context
         if ctx == MDSAdmin.CTX_KSQL:
-            context["ksql-cluster"] = self.ksql_cluster_id
+            context["clusters"]["ksql-cluster"] = self.ksql_cluster_id
             return context
         if ctx == MDSAdmin.CTX_CONNECT:
-            context["connect-cluster"] = self.connectl_cluster_id
+            context["clusters"]["connect-cluster"] = self.connectl_cluster_id
             return context
 
     def get_rolebinding_for_user(self, username):
         data = self._get_context(MDSAdmin.CTX_KAFKA)
         r = requests.post(
-            self.url + f"/security/1.0/lookup/principals/User:{username}/roleNames",
+            self.url + f"/security/1.0/lookup/principals/{username}/roleNames",
             auth=self.auth,
             json=data,
         )
@@ -135,10 +175,13 @@ class MDSAdmin(object):
         print(f"rolebinding list: {result}")
         return r.json()
 
-    def reconcile_roles(self, clients: List[Client]):
+    def reconcile_roles(self, clients: List[Client], dry_run=False):
         """
         Iterate over Client list and reconcile current with desired
         configuration
+        :clients a list of Client objects
+        :dry_run Don't change anything but display what would change (and
+        validate if possible)
         """
         if not clients:
             return

@@ -5,11 +5,11 @@ topics:
     configs:
       cleanup.policy: delete
       min.insync.replicas: 1
-      retension.ms: 10000000
+      retention.ms: 10000000
     schema:
       value:
         fromFile: "tests/data/schema.json"
-        compatibility: BACKWARDS
+        compatibility: BACKWARD
       key:
         fromFile: "tests/data/schema-key.json"
         compatibility: NONE
@@ -28,16 +28,16 @@ clients:
     consumer_for:
       # By default we will use PREFIXED. 
       # set prefixed: false to set it to LITERAL
-      - topic: TOPIC1.*
-      - topic: TOPIC2.*
+      - topic: TOPIC1.
+      - topic: TOPIC2.
         prefixed: false
     producer_for:
-      - topic: TOPIC1.*
+      - topic: TOPIC1.
     resourceowner_for:
-      - topic: TOPIC1.*
+      - topic: TOPIC1.
   - principal: Group:malakes
     consumer_for:
-      - topic: TOPIC1.*
-      - topic: TOPIC2.*
+      - topic: TOPIC1.
+      - topic: TOPIC2.
     producer_for:
-      - topic: TOPIC1.*
+      - topic: TOPIC1.

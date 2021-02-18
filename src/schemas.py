@@ -35,9 +35,10 @@ class SchemaAdmin(object):
     def __init__(self, sr_config):
         self.client = SchemaRegistryClient(sr_config)
 
-    def reconcile_schemas(self, schemas: List[Schema]):
+    def reconcile_schemas(self, schemas: List[Schema], dry_run=False):
         """
         Iterate of the provided schemas and ensure they are as specified
+        :dry_run don't change anything but display what would happen
         """
         missing_schemas = []
         found_schemas = []
