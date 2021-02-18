@@ -46,7 +46,7 @@ class MDSAdmin(object):
         # resources will record its plan in this data structure. We can then
         # use this to present a nice plan to the user (for example with a
         # Jinja2 template)
-        self.dry_run_plan = {}
+        self.dry_run_plan = {"rolebindings": []}
         self.resource_types = ("Topic", "Group", "Cluster", "Subject")
 
     def get_dry_run_plan(self):
@@ -107,50 +107,86 @@ class MDSAdmin(object):
                         f"Failed to set RBAC {roleName} for {principal} with error {r.text}"
                     )
             else:
-                # TODO Record dry_run
-                print("TODO record plan for rolebinding")
-                pass
+                data["principal"] = principal
+                data["role"] = roleName
+                self.dry_run_plan["rolebindings"].append(data.copy())
 
-    def do_consumer_for(self, topic, principal, prefixed=True):
+    def do_consumer_for(self, topic, principal, prefixed=True, dry_run=False):
         """
         Convenience method that assigns a set of permisions for a typical
         reader client
         """
         consumer_roles = ["DeveloperRead"]
         self._set_rolebinding(
-            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, consumer_roles, prefixed
+            MDSAdmin.CTX_KAFKA,
+            "Topic",
+            topic,
+            principal,
+            consumer_roles,
+            prefixed,
+            dry_run=dry_run,
         )
         # add schema registry roles
         self._set_rolebinding(
-            MDSAdmin.CTX_SR, "Subject", topic, principal, consumer_roles, prefixed
+            MDSAdmin.CTX_SR,
+            "Subject",
+            topic,
+            principal,
+            consumer_roles,
+            prefixed,
+            dry_run=dry_run,
         )
 
-    def do_producer_for(self, topic, principal, prefixed=True):
+    def do_producer_for(self, topic, principal, prefixed=True, dry_run=False):
         """
         Convenience method that assigns a set of permisions for a typical
         producer client
         """
         roles = ["DeveloperWrite"]
         self._set_rolebinding(
-            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, roles, prefixed
+            MDSAdmin.CTX_KAFKA,
+            "Topic",
+            topic,
+            principal,
+            roles,
+            prefixed,
+            dry_run=dry_run,
         )
         # add schema registry roles
         self._set_rolebinding(
-            MDSAdmin.CTX_SR, "Subject", topic, principal, roles, prefixed
+            MDSAdmin.CTX_SR,
+            "Subject",
+            topic,
+            principal,
+            roles,
+            prefixed,
+            dry_run=dry_run,
         )
 
-    def do_resourceowner_for(self, topic, principal, prefixed=True):
+    def do_resourceowner_for(self, topic, principal, prefixed=True, dry_run=False):
         """
         Convenience method that assigns a set of permissions for a
         resourceowner. (read/write AND delegate)
         """
         roles = ["ResourceOwner"]
         self._set_rolebinding(
-            MDSAdmin.CTX_KAFKA, "Topic", topic, principal, roles, prefixed
+            MDSAdmin.CTX_KAFKA,
+            "Topic",
+            topic,
+            principal,
+            roles,
+            prefixed,
+            dry_run=dry_run,
         )
         # add schema registry roles
         self._set_rolebinding(
-            MDSAdmin.CTX_SR, "Subject", topic, principal, roles, prefixed
+            MDSAdmin.CTX_SR,
+            "Subject",
+            topic,
+            principal,
+            roles,
+            prefixed,
+            dry_run=dry_run,
         )
 
     def _get_context(self, ctx):
@@ -206,6 +242,7 @@ class MDSAdmin(object):
                         topic=topic["topic"],
                         principal=principal,
                         prefixed=topic.get("prefixed", True),
+                        dry_run=dry_run,
                     )
             if client.producer_for:
                 for topic in client.producer_for:
@@ -213,6 +250,7 @@ class MDSAdmin(object):
                         topic=topic["topic"],
                         principal=principal,
                         prefixed=topic.get("prefixed", True),
+                        dry_run=dry_run,
                     )
             if client.resourceowner_for:
                 for topic in client.resourceowner_for:
@@ -220,4 +258,5 @@ class MDSAdmin(object):
                         topic=topic["topic"],
                         principal=principal,
                         prefixed=topic.get("prefixed", True),
+                        dry_run=dry_run,
                     )

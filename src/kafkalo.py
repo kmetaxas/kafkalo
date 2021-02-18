@@ -37,6 +37,8 @@ def sync(dry_run):
     # TODO no reconcile yet for Clients...
     # mds_admin.do_consumer_for("SKATA", "arcanum")
     mds_admin.reconcile_roles(parser.get_clients(), dry_run=dry_run)
+    if dry_run:
+        print(mds_admin.get_dry_run_plan())
 
 
 def get_admin_clients(config):
