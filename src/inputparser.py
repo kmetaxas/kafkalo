@@ -64,7 +64,7 @@ class InputParser(object):
             # TODO handle case where we get a specific file and not a glob
             # pattern as a stem
             if "*" not in p.stem:
-                filename.append(pattern)
+                filenames.append(pattern)
             else:
                 filenames += [x for x in p.parent.glob(p.stem) if not Path(x).is_dir()]
         return filenames

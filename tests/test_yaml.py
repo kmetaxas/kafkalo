@@ -61,5 +61,10 @@ def test_resolve_patterns():
     patterns2 = patterns + ["tests/data/patterns/faildir/*.yaml"]
     with pytest.raises(DuplicateResourceException) as e:
         parser = InputParser(patterns2)
-        print(e.value)
         assert "already declared" in str(e.value)
+
+    pattern3 = ["tests/data/patterns/sample.yaml"]
+    parser = InputParser(pattern3)
+    assert isinstance(parser, InputParser)
+    assert "tests/data/patterns/sample.yaml" in parser.filenames
+    assert len(parser.filenames) == 1
