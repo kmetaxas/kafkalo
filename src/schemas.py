@@ -34,6 +34,44 @@ class SchemaAdmin(object):
 
     def __init__(self, sr_config):
         self.client = SchemaRegistryClient(sr_config)
+        self.subject_cache = []
+        # plan is a dict with the following keys:
+        # 'subject' (name), 'schema': Schema obj, 'status': one of 'new' or
+        # 'updated'. 'compatibility': {"old":str, "new":str}
+        self.dry_run_plan = {}
+        self._populate_subject_cache()
+
+    def _populate_subject_cache(self):
+        """
+        List all subjects and populate the subject name cache
+        """
+        self.subject_cache = self.client.get_subjects()
+        return self.subject_cache
+
+    def get_dry_run_plan(self):
+        return self.dry_run_plan
+
+    def _add_to_plan(self, schema, compatibility=None):
+        """
+        Add schema to plan.
+        If compatibility is None it means we are adding a new schema and don't
+        have compatibility info yet.
+        """
+        if (not compatibility) and schema.subject_cache in self.dry_run_plan:
+            # if we are adding a new schema (no compatibility) then make sure
+            # it does not already exist
+            raise Exception(f"Plan {schema.subject_name} already exists in plan!")
+        # Does it already exist in schema registry? set status field
+        if schema.subject_name not in self.subject_cache:
+            status = "new"
+        else:
+            status = "update"
+
+        self.dry_run_plan[schema.subject_name] = {
+            "schema": schema,
+            "status": "new",
+            "compatibility": {},
+        }
 
     def reconcile_schemas(self, schemas: List[Schema], dry_run=False):
         """
@@ -62,8 +100,11 @@ class SchemaAdmin(object):
         for schema in missing_schemas:
             # Register schema
             try:
-                self.client.register_schema(schema.subject_name, schema.schema)
-                registered.append(schema)
+                if not dry_run:
+                    self.client.register_schema(schema.subject_name, schema.schema)
+                    registered.append(schema)
+                else:
+                    self._add_to_plan(schema)
             except SchemaRegistryError as e:
                 failed_to_register[schema.subject_name] = {
                     "schema": schema,
@@ -71,13 +112,23 @@ class SchemaAdmin(object):
                 }
             # Set compatibility of specified
             if schema.compatibility:
-                try:
-                    self.client.set_compatibility(
-                        schema.subject_name, level=schema.compatibility
-                    )
-                except SchemaRegistryError as e:
-                    print(
-                        f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
-                    )
+                compat = schema.compatiblity.lower().strip()
+                # First get the compatiblity
+                current_compat = self.client.get_compatibility(schema.subject_name)
+                if current_compat != compat:
+                    try:
+                        if not dry_run:
+                            self.client.set_compatibility(
+                                schema.subject_name, level=compat
+                            )
+                        else:
+                            self._add_to_plan(
+                                schema,
+                                compatibility={"old": current_compat, "new": compat},
+                            )
+                    except SchemaRegistryError as e:
+                        print(
+                            f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
+                        )
 
         print(f"Registered: {registered} and failed: {failed_to_register}")
