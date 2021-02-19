@@ -24,7 +24,10 @@ class Schema(object):
         # TODO AVRO hardcoded. Fix this by adding a field to yaml and default
         # to AVRO
         self.schema = CPSchema(self.schema_json, "AVRO")
-        self.compatibility = compatibility
+        if compatibility:
+            self.compatibility = compatibility.strip().lower()
+        else:
+            self.compatibility = None
 
 
 class SchemaAdmin(object):
@@ -73,10 +76,11 @@ class SchemaAdmin(object):
             "compatibility": {},
         }
 
-    def reconcile_schemas(self, schemas: List[Schema], dry_run=False):
+    def get_subjects_to_update(self, schemas: List[Schema]):
         """
-        Iterate of the provided schemas and ensure they are as specified
-        :dry_run don't change anything but display what would happen
+        Return a list of schemas that need updating.
+        Lookup the schemas in the schema registry and if they already exist,
+        exclude them
         """
         missing_schemas = []
         found_schemas = []
@@ -88,47 +92,72 @@ class SchemaAdmin(object):
                 )
                 found_schemas.append(found_schema)
             except SchemaRegistryError as e:
+                # TODO make sure its a 404 and not some other error
                 missing_schemas.append(schema)
-            # TODO does it also have the requested compatibility mode? Don't
-            # miss updating the compatibility
+        return missing_schemas
 
-        print(f"Found schemas {found_schemas} but we are missing {missing_schemas}")
+    def update_or_create_schema(self, schema: Schema, dry_run=False):
+        """
+        Register or create a schema
+        """
+        created = error = None
+        try:
+            if not dry_run:
+                self.client.register_schema(schema.subject_name, schema.schema)
+                created = schema
+            else:
+                self._add_to_plan(schema)
+
+        except SchemaRegistryError as e:
+            error = {
+                schema.subject_name: {
+                    "schema": schema,
+                    "reason": str(e),
+                }
+            }
+
+        return (created, error)
+
+    def reconcile_schemas(self, schemas: List[Schema], dry_run=False):
+        """
+        Iterate of the provided schemas and ensure they are as specified
+        :dry_run don't change anything but display what would happen
+        """
+
+        update_subjects = self.get_subjects_to_update(schemas)
 
         # Create missing schemas
         failed_to_register = {}
         registered = []
-        for schema in missing_schemas:
+        for schema in update_subjects:
             # Register schema
-            try:
-                if not dry_run:
-                    self.client.register_schema(schema.subject_name, schema.schema)
-                    registered.append(schema)
-                else:
-                    self._add_to_plan(schema)
-            except SchemaRegistryError as e:
-                failed_to_register[schema.subject_name] = {
-                    "schema": schema,
-                    "reason": str(e),
-                }
-            # Set compatibility of specified
-            if schema.compatibility and schema.subject_name in self.subject_cache:
-                compat = schema.compatibility.lower().strip()
-                # First get the compatiblity
-                current_compat = self.client.get_compatibility(schema.subject_name)
-                if current_compat != compat:
-                    try:
-                        if not dry_run:
-                            self.client.set_compatibility(
-                                schema.subject_name, level=compat
-                            )
-                        else:
-                            self._add_to_plan(
-                                schema,
-                                compatibility={"old": current_compat, "new": compat},
-                            )
-                    except SchemaRegistryError as e:
-                        print(
-                            f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
-                        )
+            created, error = self.update_or_create_schema(schema, dry_run=dry_run)
+            if created:
+                registered.append(created)
+            if error:
+                failed_to_register.append(error)
 
-        print(f"Registered: {registered} and failed: {failed_to_register}")
+        self.set_compatibility(schema, dry_run=dry_run)
+
+    def set_compatibility(self, schema: Schema, dry_run=False):
+        """
+        Set compatibility level for a Schema, if needed
+        """
+        # Set compatibility of specified
+        if schema.compatibility and schema.subject_name in self.subject_cache:
+            compat = schema.compatibility
+            # First get the compatiblity
+            current_compat = self.client.get_compatibility(schema.subject_name)
+            if current_compat != compat:
+                try:
+                    if not dry_run:
+                        self.client.set_compatibility(schema.subject_name, level=compat)
+                    else:
+                        self._add_to_plan(
+                            schema,
+                            compatibility={"old": current_compat, "new": compat},
+                        )
+                except SchemaRegistryError as e:
+                    print(
+                        f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
+                    )
