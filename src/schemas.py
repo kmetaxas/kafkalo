@@ -57,7 +57,7 @@ class SchemaAdmin(object):
         If compatibility is None it means we are adding a new schema and don't
         have compatibility info yet.
         """
-        if (not compatibility) and schema.subject_cache in self.dry_run_plan:
+        if (not compatibility) and schema.subject_name in self.dry_run_plan:
             # if we are adding a new schema (no compatibility) then make sure
             # it does not already exist
             raise Exception(f"Plan {schema.subject_name} already exists in plan!")
@@ -111,8 +111,8 @@ class SchemaAdmin(object):
                     "reason": str(e),
                 }
             # Set compatibility of specified
-            if schema.compatibility:
-                compat = schema.compatiblity.lower().strip()
+            if schema.compatibility and schema.subject_name in self.subject_cache:
+                compat = schema.compatibility.lower().strip()
                 # First get the compatiblity
                 current_compat = self.client.get_compatibility(schema.subject_name)
                 if current_compat != compat:
