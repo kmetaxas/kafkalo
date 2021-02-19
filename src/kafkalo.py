@@ -34,14 +34,24 @@ def sync(dry_run):
     # Reconcile schemas
     schemas = parser.get_schemas()
     schema_admin.reconcile_schemas(schemas, dry_run=dry_run)
+    schema_context = schema_admin.get_dry_run_plan()
 
     # TODO no reconcile yet for Clients...
     # mds_admin.do_consumer_for("SKATA", "arcanum")
     mds_admin.reconcile_roles(parser.get_clients(), dry_run=dry_run)
     if dry_run:
         client_context = mds_admin.get_dry_run_plan()
-        report = Report(client_context=client_context)
+        report = Report(client_context=client_context, schema_context=schema_context)
         print(report.render())
+
+
+@click.command()
+@click.pass_context
+def plan(ctx):
+    """
+    Generate a plan. This is equivalent to sync --dry-run
+    """
+    ctx.invoke(sync, dry_run=True)
 
 
 def get_admin_clients(config):
@@ -52,6 +62,7 @@ def get_admin_clients(config):
 
 
 cli.add_command(sync)
+cli.add_command(plan)
 
 if __name__ == "__main__":
     config = Config()
