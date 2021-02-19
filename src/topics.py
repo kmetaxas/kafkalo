@@ -32,6 +32,10 @@ class KafkaAdmin(object):
         self.adminclient = AdminClient(kafka_config)
         self.consumer = Consumer(kafka_config)
         self.topics_cache = []
+        self.dry_run_plan = {}
+
+    def get_dry_run_plan(self):
+        return self.dry_run_plan
 
     def list_topics(self):
         """
@@ -57,14 +61,30 @@ class KafkaAdmin(object):
         topic_names = set([x.name for x in topics])
         new_topic_names = topic_names - existing_topic_names
         skipped_topic_names = existing_topic_names & topic_names
-        print(f"Skipping topics {skipped_topic_names} as they already exist")
+        topics_to_create = [x for x in topics if x.name in new_topic_names]
+        topics_created, topics_failed = self.create_topics(
+            topics_to_create, dry_run=dry_run
+        )
 
+        # now alter configs
+        for topic in topics:
+            if topic.name in topics_failed:
+                continue
+            if topic.configs:
+                self.alter_config_for_topic(topic.name, topic.configs, dry_run=dry_run)
+        return (topics_created, topics_failed)
+
+    def create_topics(self, topics: List[Topic], dry_run=None):
+        """
+        Create topics
+        """
+        # Lets create a dictionary of topic_name:Topic obj to make lookups
+        # easier
+        topics_dict = {x.name: x for x in topics}
         new_topics = [
             NewTopic(topic.name, topic.partitions, topic.replication_factor)
             for topic in topics
-            if topic.name in new_topic_names
         ]
-
         # we get back a dict of {topic: future} that we can call the result on
         fs = self.adminclient.create_topics(
             new_topics, operation_timeout=10, validate_only=dry_run
@@ -72,19 +92,24 @@ class KafkaAdmin(object):
 
         topics_failed = {}
         topics_created = {}
-        for topic, future in fs.items():
+        for topic_name, future in fs.items():
+            topic = topics_dict[topic_name]
             try:
                 future.result()
-                topics_created[topic] = {}
+                topics_created[topic_name] = topic
+                self.dry_run_plan[topic.name] = {
+                    "topic": topic,
+                    "status": "created",
+                    "reason": None,
+                }
             except Exception as e:
-                topics_failed[topic] = {"reason": str(e)}
-        print(f"Failed to create topics: {topics_failed}")
-        # now alter configs
-        for topic in topics:
-            if topic.name in topics_failed:
-                continue
-            if topic.configs:
-                self.alter_config_for_topic(topic.name, topic.configs, dry_run=dry_run)
+                topics_failed[topic_name] = {"topic": topic, "reason": str(e)}
+                self.dry_run_plan[topic.name] = {
+                    "topic": topic,
+                    "status": "failed",
+                    "reason": str(e),
+                }
+
         return (topics_created, topics_failed)
 
     def alter_config_for_topic(self, topic, configs, dry_run=False):

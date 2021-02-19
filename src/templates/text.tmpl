@@ -1,14 +1,17 @@
 Dry run report:
 
 Topics:
+{% for topic_name, data in topics.items() -%}
+{{topic_name}} {%if data['status'] == 'created' %}CREATED{%else %}WOULD FAIL with reason {{data["reason"]}} {%endif%}
+{% endfor %}
 
 ---Schemas:
-{% for subject,data in schemas.items()  %}
+{% for subject,data in schemas.items()  -%}
 {{ subject }} will be {% if data["status"] == "new" %}CREATED{% else %}UPDATED{% endif %}{% if data["compatiblity"] %} (Compatibility will be set to {{data["compatbility"]["new"] }} from {{ data["compatibility"]["old"] }}){% else %}{%if data.compatibility %}Compatibility: {{data.compatibility}}{%endif%} {% endif %}
 {% endfor %}
 
 Clients:
-{% for rolebinding in clients["rolebindings"] %}
+{% for rolebinding in clients["rolebindings"] -%}
 - Allow {{rolebinding.principal|safe}} role {{rolebinding.role}} to {{rolebinding.resourcePatterns[0].resourceType}} named {{rolebinding.resourcePatterns[0].name}} in {{rolebinding.resourcePatterns[0].patternType}} mode
 {% endfor %}
 This is a template {{skata}}

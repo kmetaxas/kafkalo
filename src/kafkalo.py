@@ -31,6 +31,7 @@ def sync(dry_run):
     # Reconcile topics
     parser = InputParser(config.get_input_patterns())
     topic_admin.reconcile_topics(parser.get_topics(), dry_run=dry_run)
+    topics_context = topic_admin.get_dry_run_plan()
     # Reconcile schemas
     schemas = parser.get_schemas()
     schema_admin.reconcile_schemas(schemas, dry_run=dry_run)
@@ -41,7 +42,11 @@ def sync(dry_run):
     mds_admin.reconcile_roles(parser.get_clients(), dry_run=dry_run)
     if dry_run:
         client_context = mds_admin.get_dry_run_plan()
-        report = Report(client_context=client_context, schema_context=schema_context)
+        report = Report(
+            client_context=client_context,
+            schema_context=schema_context,
+            topics_context=topics_context,
+        )
         print(report.render())
 
 
