@@ -96,11 +96,13 @@ class InputParser(object):
                     if filename:
                         with open(filename, "r") as fp:
                             schema_data = fp.read()
-                            schema = Schema(
-                                subject_name=f"{topic.name}-key", schema=schema_data
-                            )
-                            schema.compatibility = topic.schema["key"].get(
+                            compatibility = topic.schema["key"].get(
                                 "compatibility", None
+                            )
+                            schema = Schema(
+                                subject_name=f"{topic.name}-key",
+                                schema=schema_data,
+                                compatibility=compatibility,
                             )
                             schemas.append(schema)
                 if "value" in topic.schema:
@@ -108,11 +110,13 @@ class InputParser(object):
                     if filename:
                         with open(filename, "r") as fp:
                             schema_data = fp.read()
-                            schema = Schema(
-                                subject_name=f"{topic.name}-value", schema=schema_data
-                            )
-                            schema.compatibility = topic.schema["value"].get(
+                            compatibility = topic.schema["value"].get(
                                 "compatibility", None
+                            )
+                            schema = Schema(
+                                subject_name=f"{topic.name}-value",
+                                schema=schema_data,
+                                compatibility=compatibility,
                             )
                             schemas.append(schema)
         return schemas
