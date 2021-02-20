@@ -25,12 +25,13 @@ class KafkaAdmin(object):
     Can manage topics
     """
 
-    def __init__(self, kafka_config):
+    def __init__(self, adminclient, consumer):
         """
-        kafka_config a dictionary as used by librdkafka (and confluent-python)
+        :adminclient is an instance of kafka AdminClient
+        :adminclient is an instance of kafka Consumer
         """
-        self.adminclient = AdminClient(kafka_config)
-        self.consumer = Consumer(kafka_config)
+        self.adminclient = adminclient
+        self.consumer = consumer
         self.topics_cache = []
         self.dry_run_plan = {}
 
@@ -56,7 +57,7 @@ class KafkaAdmin(object):
         """
         changes = {}
         for key in after.keys():
-            if after[key] != before[key]:
+            if str(after[key]).strip() != str(before[key]).strip():
                 changes[key] = {"before": before[key], "after": after[key]}
         return changes
 
@@ -158,6 +159,9 @@ class KafkaAdmin(object):
             except Exception as e:
                 configs_failed[res] = str(e)
         if topic.name not in self.dry_run_plan:
+            import pdb
+
+            pdb.set_trace()
             self.dry_run_plan[topic.name] = {
                 "topic": topic,
                 "reason": None,

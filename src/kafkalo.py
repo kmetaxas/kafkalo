@@ -8,6 +8,7 @@ from config import Config
 from clients import MDSAdmin
 from report import Report
 import click
+from confluent_kafka.admin import AdminClient
 
 
 @click.group()
@@ -60,7 +61,11 @@ def plan(ctx):
 
 
 def get_admin_clients(config):
-    topic_admin = KafkaAdmin(config.get_kafka_config())
+
+    kafka_config = config.get_kafka_config()
+    adminclient = AdminClient(kafka_config)
+    consumer = AdminClient(kafka_config)
+    topic_admin = KafkaAdmin(adminclient, consumer)
     schema_admin = SchemaAdmin(config.get_sr_config())
     mds_admin = MDSAdmin(config.get_mds_config())
     return (topic_admin, schema_admin, mds_admin)
