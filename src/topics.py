@@ -159,9 +159,6 @@ class KafkaAdmin(object):
             except Exception as e:
                 configs_failed[res] = str(e)
         if topic.name not in self.dry_run_plan:
-            import pdb
-
-            pdb.set_trace()
             self.dry_run_plan[topic.name] = {
                 "topic": topic,
                 "reason": None,
