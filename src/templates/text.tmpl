@@ -4,7 +4,7 @@ Topics:
 {% for topic_name, data in topics.items() -%}
 {{topic_name}} {%if data['status'] == 'created' %}CREATED{%else %}WOULD FAIL with reason {{data["reason"]}} {%endif%}
 {% if data.get("config_delta",None) %}
-Configs to be altered: {% for config in data["config_delta"]%}{{config}},{%endfor%}
+Configs to be altered: {% for config, diff in data["config_delta"].items() %}{{config}}, from {{diff["before"]}} to {{diff["after"]}}. {%endfor%}
 {% endif %}
 {% if data["configs_failed"] -%}
 Configs that will fail: {% for config,reasoning in data["configs_failed"].items() %}{{config}} because: {{reason}},{%endfor%}
