@@ -57,8 +57,11 @@ class KafkaAdmin(object):
         """
         changes = {}
         for key in after.keys():
-            if str(after[key]).strip() != str(before[key]).strip():
-                changes[key] = {"before": before[key], "after": after[key]}
+            if key not in before:
+                changes[key] = after[key]
+            else:
+                if str(after[key]).strip() != str(before[key]).strip():
+                    changes[key] = {"before": before[key], "after": after[key]}
         return changes
 
     def reconcile_topics(self, topics: List[Topic], dry_run=False, strict=False):
@@ -111,20 +114,35 @@ class KafkaAdmin(object):
             try:
                 future.result()
                 topics_created[topic_name] = topic
-                self.dry_run_plan[topic.name] = {
-                    "topic": topic,
-                    "status": "created",
-                    "reason": None,
-                }
+                self._update_plan(
+                    topic.name,
+                    {
+                        "topic": topic,
+                        "create": "success",
+                        "reason": None,
+                    },
+                )
             except Exception as e:
                 topics_failed[topic_name] = {"topic": topic, "reason": str(e)}
-                self.dry_run_plan[topic.name] = {
-                    "topic": topic,
-                    "status": "failed",
-                    "reason": str(e),
-                }
+                self._update_plan(
+                    topic.name,
+                    {
+                        "topic": topic,
+                        "create": "failed",
+                        "reason": str(e),
+                    },
+                )
 
         return (topics_created, topics_failed)
+
+    def _update_plan(self, topic: str, data: dict):
+        """
+        Update the plan for this topic with data dict
+        """
+        if topic not in self.dry_run_plan:
+            self.dry_run_plan[topic] = data
+        else:
+            self.dry_run_plan[topic].update(data)
 
     def alter_config_for_topic(self, topic: Topic, dry_run=False):
         """
@@ -159,13 +177,18 @@ class KafkaAdmin(object):
             except Exception as e:
                 configs_failed[res] = str(e)
         if topic.name not in self.dry_run_plan:
-            self.dry_run_plan[topic.name] = {
-                "topic": topic,
-                "reason": None,
-                "config_delta": config_delta,
-            }
-        self.dry_run_plan[topic.name].update({"configs_altered": configs_altered})
-        self.dry_run_plan[topic.name].update({"configs_failed": configs_failed})
+            self._update_plan(
+                topic.name,
+                {
+                    "topic": topic,
+                    "reason": None,
+                    "config_delta": config_delta,
+                },
+            )
+        self._update_plan(
+            topic.name,
+            {"configs_altered": configs_altered, "configs_failed": configs_failed},
+        )
         return (configs_altered, configs_failed, config_delta)
 
     def describe_topic(self, topic: str):

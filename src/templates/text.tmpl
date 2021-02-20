@@ -2,12 +2,12 @@ Dry run report:
 
 Topics:
 {% for topic_name, data in topics.items() -%}
-{{topic_name}} {%if data['status'] == 'created' %}CREATED{%else %}WOULD FAIL with reason {{data["reason"]}} {%endif%}
-{% if data.get("config_delta",None) %}
+{{topic_name}} {%if data['create'] == 'success' %}TO CREATE - Configs: {{data['topic'].configs|safe}} {%elif data['create']=='failed' -%}WOULD FAIL with reason {{data["reason"]|safe}} (status: {{data['create']}} {%else%}{%endif%}
+{% if data.get("config_delta",None) and data['create'] != 'success'-%}{#topics to be created don't have reliable alter_config errors.#}
 Configs to be altered: {% for config, diff in data["config_delta"].items() %}{{config}}, from {{diff["before"]}} to {{diff["after"]}}. {%endfor%}
 {% endif %}
-{% if data["configs_failed"] -%}
-Configs that will fail: {% for config,reasoning in data["configs_failed"].items() %}{{config}} because: {{reason}},{%endfor%}
+{% if data["configs_failed"] and data["create"] != "success"-%} {# ignore topics to be created on alter config failures #}
+{% for config,reason in data["configs_failed"].items() %}{{topic_name}} '{{config}}' will fail because: {{reason}},{%endfor%}
 {% endif  %}
 {% endfor %}
 

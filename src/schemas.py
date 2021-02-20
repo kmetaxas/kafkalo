@@ -137,7 +137,7 @@ class SchemaAdmin(object):
             if error:
                 failed_to_register.append(error)
 
-        self.set_compatibility(schema, dry_run=dry_run)
+            self.set_compatibility(schema, dry_run=dry_run)
 
     def set_compatibility(self, schema: Schema, dry_run=False):
         """
