@@ -3,6 +3,12 @@ Dry run report:
 Topics:
 {% for topic_name, data in topics.items() -%}
 {{topic_name}} {%if data['status'] == 'created' %}CREATED{%else %}WOULD FAIL with reason {{data["reason"]}} {%endif%}
+{% if data["configs_altered"] -%}
+Configs to be altered: {% for config in data["configs_altered"]%}{{config}},{%endfor%}
+{% endif %}
+{% if data["configs_failed"] -%}
+Configs that will fail: {% for config,reasoning in data["configs_failed"].items() %}{{config}} because: {{reason}},{%endfor%}
+{% endif  %}
 {% endfor %}
 
 ---Schemas:

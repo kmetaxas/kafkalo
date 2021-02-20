@@ -71,7 +71,9 @@ class KafkaAdmin(object):
             if topic.name in topics_failed:
                 continue
             if topic.configs:
-                self.alter_config_for_topic(topic.name, topic.configs, dry_run=dry_run)
+                self.alter_config_for_topic(topic, dry_run=dry_run)
+        # TODO If strict mode. delete topics not present in list.
+        # Add param --zero-fucks-given to do that without user prompt to verify
         return (topics_created, topics_failed)
 
     def create_topics(self, topics: List[Topic], dry_run=None):
@@ -112,19 +114,20 @@ class KafkaAdmin(object):
 
         return (topics_created, topics_failed)
 
-    def alter_config_for_topic(self, topic, configs, dry_run=False):
+    def alter_config_for_topic(self, topic: Topic, dry_run=False):
         """
         Alter the configuration of a single topic
         """
 
         # First get existing configs.. so really "old config" at this stage
         new_config = {
-            val.name: val.value for (key, val) in self.describe_topic(topic).items()
+            val.name: val.value
+            for (key, val) in self.describe_topic(topic.name).items()
         }
         # And update with changed values to get real new config
-        new_config.update(configs)
+        new_config.update(topic.configs)
 
-        resource = ConfigResource(restype=Type.TOPIC, name=topic)
+        resource = ConfigResource(restype=Type.TOPIC, name=topic.name)
         for key, value in new_config.items():
             resource.set_config(key, value)
         fs = self.adminclient.alter_configs(
@@ -133,13 +136,20 @@ class KafkaAdmin(object):
         # check result
 
         configs_altered = []
-        configs_failed = []
+        configs_failed = {}
         for res, future in fs.items():
             try:
                 future.result()
                 configs_altered.append(res)
             except Exception as e:
-                configs_failed.append(res)
+                configs_failed[res] = str(e)
+        if topic.name not in self.dry_run_plan:
+            self.dry_run_plan[topic.name] = {
+                "topic": topic,
+                "reason": None,
+            }
+        self.dry_run_plan[topic.name].update({"configs_altered": configs_altered})
+        self.dry_run_plan[topic.name].update({"configs_failed": configs_failed})
         return (configs_altered, configs_failed)
 
     def describe_topic(self, topic: str):
