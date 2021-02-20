@@ -109,6 +109,8 @@ class MDSAdmin(object):
             else:
                 data["principal"] = principal
                 data["role"] = roleName
+                # TODO either don't add if already exists or add metadata so
+                # that we can only display rolebindings to be created only
                 self.dry_run_plan["rolebindings"].append(data.copy())
 
     def do_consumer_for(self, topic, principal, prefixed=True, dry_run=False):
