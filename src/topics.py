@@ -50,9 +50,19 @@ class KafkaAdmin(object):
         # return the complete metadata object
         return metadata
 
+    def _get_config_diff(self, before: dict, after: dict):
+        """
+        Return the changed configs
+        """
+        changes = {}
+        for key in after.keys():
+            if after[key] != before[key]:
+                changes[key] = {"before": before[key], "after": after[key]}
+        return changes
+
     def reconcile_topics(self, topics: List[Topic], dry_run=False, strict=False):
         """
-        Reconsile configuration
+        Reconcile configuration
         Create missing topics, and update configs.
         :dry_run will not update anything
         """
@@ -62,6 +72,7 @@ class KafkaAdmin(object):
         new_topic_names = topic_names - existing_topic_names
         skipped_topic_names = existing_topic_names & topic_names
         topics_to_create = [x for x in topics if x.name in new_topic_names]
+
         topics_created, topics_failed = self.create_topics(
             topics_to_create, dry_run=dry_run
         )
@@ -120,12 +131,15 @@ class KafkaAdmin(object):
         """
 
         # First get existing configs.. so really "old config" at this stage
-        new_config = {
+        existing_config = {
             val.name: val.value
             for (key, val) in self.describe_topic(topic.name).items()
         }
+        new_config = existing_config.copy()
         # And update with changed values to get real new config
         new_config.update(topic.configs)
+        # get a config delta
+        config_delta = self._get_config_diff(existing_config, new_config)
 
         resource = ConfigResource(restype=Type.TOPIC, name=topic.name)
         for key, value in new_config.items():
@@ -147,10 +161,11 @@ class KafkaAdmin(object):
             self.dry_run_plan[topic.name] = {
                 "topic": topic,
                 "reason": None,
+                "config_delta": config_delta,
             }
         self.dry_run_plan[topic.name].update({"configs_altered": configs_altered})
         self.dry_run_plan[topic.name].update({"configs_failed": configs_failed})
-        return (configs_altered, configs_failed)
+        return (configs_altered, configs_failed, config_delta)
 
     def describe_topic(self, topic: str):
         """
