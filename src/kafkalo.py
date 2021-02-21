@@ -9,6 +9,7 @@ from clients import MDSAdmin
 from report import Report
 import click
 from confluent_kafka.admin import AdminClient
+from confluent_kafka.schema_registry import SchemaRegistryClient
 
 
 @click.group()
@@ -66,7 +67,9 @@ def get_admin_clients(config):
     adminclient = AdminClient(kafka_config)
     consumer = AdminClient(kafka_config)
     topic_admin = KafkaAdmin(adminclient, consumer)
-    schema_admin = SchemaAdmin(config.get_sr_config())
+
+    sr_client = SchemaRegistryClient(config.get_sr_config())
+    schema_admin = SchemaAdmin(sr_client)
     mds_admin = MDSAdmin(config.get_mds_config())
     return (topic_admin, schema_admin, mds_admin)
 

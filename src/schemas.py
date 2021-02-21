@@ -35,8 +35,8 @@ class SchemaAdmin(object):
     Manage schemas
     """
 
-    def __init__(self, sr_config):
-        self.client = SchemaRegistryClient(sr_config)
+    def __init__(self, sr_client):
+        self.client = sr_client
         self.subject_cache = []
         # plan is a dict with the following keys:
         # 'subject' (name), 'schema': Schema obj, 'status': one of 'new' or
