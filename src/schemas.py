@@ -54,27 +54,17 @@ class SchemaAdmin(object):
     def get_dry_run_plan(self):
         return self.dry_run_plan
 
-    def _add_to_plan(self, schema, compatibility=None):
+    def _add_to_plan(self, schema, data=None):
         """
         Add schema to plan.
-        If compatibility is None it means we are adding a new schema and don't
-        have compatibility info yet.
         """
-        if (not compatibility) and schema.subject_name in self.dry_run_plan:
-            # if we are adding a new schema (no compatibility) then make sure
-            # it does not already exist
-            raise Exception(f"Plan {schema.subject_name} already exists in plan!")
-        # Does it already exist in schema registry? set status field
-        if schema.subject_name not in self.subject_cache:
-            status = "new"
-        else:
-            status = "update"
-
-        self.dry_run_plan[schema.subject_name] = {
-            "schema": schema,
-            "status": "new",
-            "compatibility": {},
-        }
+        if schema.subject_name not in self.dry_run_plan:
+            self.dry_run_plan[schema.subject_name] = {
+                "schema": schema,
+                "status": "created",
+            }
+        if data:
+            self.dry_run_plan[schema.subject_name].update(data)
 
     def get_subjects_to_update(self, schemas: List[Schema]):
         """
@@ -106,7 +96,10 @@ class SchemaAdmin(object):
                 self.client.register_schema(schema.subject_name, schema.schema)
                 created = schema
             else:
-                self._add_to_plan(schema)
+                status = "created"
+                if schema.subject_name in self.subject_cache:
+                    status = "updated"
+                self._add_to_plan(schema, {"status": status})
 
         except SchemaRegistryError as e:
             error = {
@@ -115,6 +108,8 @@ class SchemaAdmin(object):
                     "reason": str(e),
                 }
             }
+            print(f"Error registering schema for {schema.subject_name}: {e}")
+            self._add_to_plan(schema, {"status": "failed"})
 
         return (created, error)
 
@@ -135,27 +130,40 @@ class SchemaAdmin(object):
             if created:
                 registered.append(created)
             if error:
-                failed_to_register.append(error)
-
+                failed_to_register.update({schema.subject_name: error})
             self.set_compatibility(schema, dry_run=dry_run)
 
     def set_compatibility(self, schema: Schema, dry_run=False):
         """
         Set compatibility level for a Schema, if needed
         """
+        global_compat = self.client.get_compatibility()["compatibilityLevel"].lower()
+        per_subject_override_exists = False
         # Set compatibility of specified
         if schema.compatibility and schema.subject_name in self.subject_cache:
             compat = schema.compatibility
             # First get the compatiblity
-            current_compat = self.client.get_compatibility(schema.subject_name)
+            try:
+                current_compat = self.client.get_compatibility(schema.subject_name)[
+                    "compatibilityLevel"
+                ].lower()
+                per_subject_override_exists = True
+            except SchemaRegistryError as e:
+                print(f"Got error {e}")
+                current_compat = global_compat
+
             if current_compat != compat:
+                print(
+                    f"Will update compat for {schema.subject_name} from {current_compat} to {compat}"
+                )
                 try:
                     if not dry_run:
                         self.client.set_compatibility(schema.subject_name, level=compat)
                     else:
+                        print("compat differ. add to plan")
                         self._add_to_plan(
                             schema,
-                            compatibility={"old": current_compat, "new": compat},
+                            {"compatiblity": {"old": current_compat, "new": compat}},
                         )
                 except SchemaRegistryError as e:
                     print(

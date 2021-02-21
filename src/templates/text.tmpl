@@ -13,7 +13,7 @@ Configs to be altered: {% for config, diff in data["config_delta"].items() %}{{c
 
 ---Schemas:
 {% for subject,data in schemas.items()  -%}
-{{ subject }} will be {% if data["status"] == "new" %}CREATED{% else %}UPDATED{% endif %}{% if data["compatiblity"] %} (Compatibility will be set to {{data["compatbility"]["new"] }} from {{ data["compatibility"]["old"] }}){% else %}{%if data.compatibility %}Compatibility: {{data.compatibility}}{%endif%} {% endif %}
+{{ subject }} will be {% if data["status"] == "created" %}CREATED{% else %}UPDATED{% endif %}{% if "compatibility" in data %} (Compatibility will be set to {{data["compatbility"]["new"] }} from {{ data["compatibility"]["old"] }}){% else %}{%if data.compatibility %}Compatibility: {{data.compatibility}}{%endif%} {% endif %}
 {% endfor %}
 
 Clients:
