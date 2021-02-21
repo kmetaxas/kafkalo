@@ -1,0 +1,16 @@
+{
+	"type" : "record",
+	"name" : "userInfo",
+	"namespace" : "my.example",
+	"fields" : [
+		{
+			"name" : "age", 
+			"type" : "int", 
+			"default" : -1
+		},
+		{
+			"name": "sex",
+			"type": "string"
+		}
+	]
+}
