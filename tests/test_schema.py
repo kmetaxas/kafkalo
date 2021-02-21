@@ -46,3 +46,15 @@ def test_populate_schema_cache():
     client.reconcile_schemas(schemas)
     client._populate_subject_cache()
     assert len(client.subject_cache) == 3
+
+
+def test_get_subjects_to_update():
+    client = SchemaAdmin(MockSRClient({}))
+    parser = InputParser(SAMPLE_PATH)
+    schemas = parser.get_schemas()
+    to_update = client.get_subjects_to_update(schemas)
+    assert len(to_update) == 3
+
+    client.reconcile_schemas(schemas)
+    to_update = client.get_subjects_to_update(schemas)
+    assert len(to_update) == 0
