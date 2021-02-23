@@ -5,6 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 kafkalo = {editable = true,path = "."}
+sphinx = "*"
+coverage = "*"
+pytest-cov = "*"
 
 [packages]
 requests = "*"
