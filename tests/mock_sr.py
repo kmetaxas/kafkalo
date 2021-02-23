@@ -1,4 +1,4 @@
-from confluent_kafka.schema_registry import Schema, RegisteredSchema
+from confluent_kafka.schema_registry import RegisteredSchema
 from confluent_kafka.schema_registry.error import SchemaRegistryError
 
 

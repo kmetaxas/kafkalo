@@ -43,7 +43,7 @@ def test_inputparser_get_schemas():
     # Topic 1 has not compatibility set
     assert schemas[0].compatibility == "none"
     assert schemas[1].compatibility == "backward"
-    assert schemas[2].compatibility is not None
+    assert schemas[2].compatibility is None
 
 
 def test_resolve_patterns():
