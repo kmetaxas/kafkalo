@@ -1,4 +1,4 @@
-from topics import KafkaAdmin
+from kafkalo.topics import KafkaAdmin
 
 
 def test_get_config_diff():

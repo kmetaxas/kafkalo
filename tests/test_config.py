@@ -1,4 +1,4 @@
-from config import Config
+from kafkalo.config import Config
 
 SAMPLE_FILE = "tests/data/config.sample.yaml"
 

@@ -77,22 +77,11 @@ def get_admin_clients(config):
 cli.add_command(sync)
 cli.add_command(plan)
 
-if __name__ == "__main__":
+
+def main():
     config = Config()
     cli()
 
-    # topic_admin.list_topics()
-    # topic_admin.reconcile_topics(parser.get_topics())
-    # topic_admin.delete_topics(parser.get_topics())
-    # topic_admin.alter_config_for_topic(
-    #    "SKATA.VROMIA.POLY",
-    #    {
-    #        "cleanup.policy": "compact",
-    #    },
-    # )
 
-    # topic_admin.describe_topic("SKATA.VROMIA.POLY")
-    # Do schema
-    # print(mds_admin.get_kafka_cluster_id())
-    # print(mds_admin.get_rolebinding_for_user("arcanum"))
-    # mds_admin.do_consumer_for("SKATA", "arcanum")
+if __name__ == "__main__":
+    main()

@@ -12,6 +12,12 @@ with open("HISTORY.rst") as history_file:
 
 requirements = [
     "Click>=7.0",
+    "requests>=2.0",
+    "pyyaml",
+    "environs",
+    "jinja2",
+    # Note that the bundled librdkafka does not include GSSAPI support
+    "confluent-kafka[avro]",
 ]
 
 setup_requirements = [

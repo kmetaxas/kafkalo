@@ -1,7 +1,7 @@
-from schemas import Schema, SchemaAdmin
-from inputparser import InputParser, DuplicateResourceException
+from kafkalo.schemas import Schema, SchemaAdmin
+from kafkalo.inputparser import InputParser, DuplicateResourceException
 from confluent_kafka.schema_registry import Schema as SRSchema
-from mock_sr import MockSRClient
+from .mock_sr import MockSRClient
 import json
 
 SAMPLE_PATH = ["tests/data/sample*.yaml"]

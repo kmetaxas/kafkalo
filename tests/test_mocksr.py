@@ -1,7 +1,7 @@
 from confluent_kafka.schema_registry import Schema, RegisteredSchema
 from confluent_kafka.schema_registry.error import SchemaRegistryError
-from inputparser import InputParser, DuplicateResourceException
-from mock_sr import MockSRClient
+from kafkalo.inputparser import InputParser, DuplicateResourceException
+from .mock_sr import MockSRClient
 import json
 import pytest
 

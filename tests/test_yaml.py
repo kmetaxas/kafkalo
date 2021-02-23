@@ -8,9 +8,9 @@ except ImportError:
 
 SAMPLE_PATH = ["tests/data/sample*.yaml"]
 
-from inputparser import InputParser, DuplicateResourceException
-from topics import Topic
-from schemas import Schema
+from kafkalo.inputparser import InputParser, DuplicateResourceException
+from kafkalo.topics import Topic
+from kafkalo.schemas import Schema
 
 
 def test_inputparser_load():
