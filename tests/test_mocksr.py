@@ -11,20 +11,20 @@ SAMPLE_SCHEMAS = [
 ]
 SCHEMA1 = """
 {
-	"type" : "record",
+    "type" : "record",
     "name" : "userInfo",
     "namespace" : "my.example",
     "fields" : [{"name" : "age", "type" : "int", "default" : -1}]
-}
+    }
 """
 SCHEMA2 = """
 {
-	"type" : "record",
+    "type" : "record",
     "name" : "userInfo",
     "namespace" : "my.example",
     "fields" : [{"name" : "age", "type" : "int", "default" : -1},
     {"name": "height","type":"int"}]
-}
+    }
 """
 
 
@@ -62,6 +62,7 @@ def test_set_compatibility():
     assert e.value.error_message == "Subject not found"
     assert e.value.error_code == 40401
     schema_id = client.register_schema(name, Schema(json.dumps(SCHEMA1), "AVRO"))
+    assert schema_id == 1
     client.set_compatibility(subject_name=name, level="NONE")
     assert client.get_compatibility(name) == {"compatibilityLevel": "NONE"}
     assert client.get_compatibility() == {"compatibilityLevel": "BACKWARD"}
@@ -98,5 +99,6 @@ def test_lookup_schema():
     assert e.value.error_code == 40403
     # add a schema and try again
     schema_id = client.register_schema(name, schema2)
+    assert schema_id == 1
     found = client.lookup_schema(name, schema2)
     assert isinstance(found, RegisteredSchema)

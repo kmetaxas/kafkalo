@@ -1,8 +1,6 @@
 from kafkalo.schemas import Schema, SchemaAdmin
-from kafkalo.inputparser import InputParser, DuplicateResourceException
-from confluent_kafka.schema_registry import Schema as SRSchema
+from kafkalo.inputparser import InputParser
 from .mock_sr import MockSRClient
-import json
 
 SAMPLE_PATH = ["tests/data/sample*.yaml"]
 SAMPLE_SCHEMAS = [
@@ -27,6 +25,7 @@ def test_compatibility():
 
 def test_client():
     client = SchemaAdmin(MockSRClient({}))
+    assert isinstance(client, SchemaAdmin)
 
 
 def test_register_schema():

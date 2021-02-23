@@ -1,16 +1,11 @@
-from yaml import load, dump
 import pytest
 
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-
-SAMPLE_PATH = ["tests/data/sample*.yaml"]
 
 from kafkalo.inputparser import InputParser, DuplicateResourceException
 from kafkalo.topics import Topic
 from kafkalo.schemas import Schema
+
+SAMPLE_PATH = ["tests/data/sample*.yaml"]
 
 
 def test_inputparser_load():
@@ -28,7 +23,7 @@ def test_inputparser_get_topics():
     assert topics[0].name == "SKATA.VROMIA.POLY"
     assert topics[0].partitions == 6
     assert topics[0].replication_factor == 1
-    assert topics[0].configs != None
+    assert topics[0].configs is not None
     assert topics[0].configs["cleanup.policy"] == "delete"
     assert topics[0].configs["min.insync.replicas"] == 1
     assert topics[0].configs["retention.ms"] == 10000000
@@ -48,7 +43,7 @@ def test_inputparser_get_schemas():
     # Topic 1 has not compatibility set
     assert schemas[0].compatibility == "none"
     assert schemas[1].compatibility == "backward"
-    assert schemas[2].compatibility == None
+    assert schemas[2].compatibility is not None
 
 
 def test_resolve_patterns():
