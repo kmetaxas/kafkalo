@@ -46,7 +46,7 @@ setup(
     description="Manage Kafka topics, schemas and permissions",
     entry_points={
         "console_scripts": [
-            "kafkalo=kafkalo.kafkalo:main",
+            "kafkalo=kafkalo.cli:main",
         ],
     },
     install_requires=requirements,
