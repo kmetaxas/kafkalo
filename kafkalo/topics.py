@@ -1,5 +1,4 @@
-from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource
-from confluent_kafka import Consumer
+from confluent_kafka.admin import NewTopic, ConfigResource
 from confluent_kafka import KafkaException
 from typing import List
 
@@ -74,7 +73,7 @@ class KafkaAdmin(object):
         existing_topic_names = set(current_medatada.topics.keys())
         topic_names = set([x.name for x in topics])
         new_topic_names = topic_names - existing_topic_names
-        skipped_topic_names = existing_topic_names & topic_names
+        # skipped_topic_names = existing_topic_names & topic_names
         topics_to_create = [x for x in topics if x.name in new_topic_names]
 
         topics_created, topics_failed = self.create_topics(
@@ -198,7 +197,9 @@ class KafkaAdmin(object):
         resource = ConfigResource(restype=Type.TOPIC, name=topic)
         fs = self.adminclient.describe_configs([resource])
         if len(fs) != 1:
-            return f"describe_configs for a topic did not return a single response."
+            return (
+                f"describe_configs for topic {topic} did not return a single response."
+            )
         for res, future in fs.items():
             try:
                 configs = future.result()
@@ -206,7 +207,7 @@ class KafkaAdmin(object):
                 #    print(f"Topic {topic} -> {config.name} = {config.value}")
                 return configs
             except KafkaException as e:
-                print(f"Failed to to describe config for {res}")
+                print(f"Failed to to describe config for {res} with error {e}")
                 return {}
 
     def delete_topics(self, topics: List[Topic], dry_run=False):

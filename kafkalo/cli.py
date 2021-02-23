@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # from alladmin import AllAdmin
-from kafkalo.topics import KafkaAdmin, Topic
-from kafkalo.schemas import SchemaAdmin, Schema
+from kafkalo.topics import KafkaAdmin
+from kafkalo.schemas import SchemaAdmin
 from kafkalo.inputparser import InputParser
-import yaml
 from kafkalo.config import Config
 from kafkalo.clients import MDSAdmin
 from kafkalo.report import Report
@@ -79,7 +78,6 @@ cli.add_command(plan)
 
 
 def main():
-    config = Config()
     cli()
 
 

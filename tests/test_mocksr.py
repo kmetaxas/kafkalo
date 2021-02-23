@@ -1,6 +1,5 @@
 from confluent_kafka.schema_registry import Schema, RegisteredSchema
 from confluent_kafka.schema_registry.error import SchemaRegistryError
-from kafkalo.inputparser import InputParser, DuplicateResourceException
 from .mock_sr import MockSRClient
 import json
 import pytest
@@ -13,18 +12,18 @@ SAMPLE_SCHEMAS = [
 SCHEMA1 = """
 {
 	"type" : "record",
-		"name" : "userInfo",
-		"namespace" : "my.example",
-		"fields" : [{"name" : "age", "type" : "int", "default" : -1}]
+    "name" : "userInfo",
+    "namespace" : "my.example",
+    "fields" : [{"name" : "age", "type" : "int", "default" : -1}]
 }
 """
 SCHEMA2 = """
 {
 	"type" : "record",
-		"name" : "userInfo",
-		"namespace" : "my.example",
-		"fields" : [{"name" : "age", "type" : "int", "default" : -1},
-        {"name": "height","type":"int"}]
+    "name" : "userInfo",
+    "namespace" : "my.example",
+    "fields" : [{"name" : "age", "type" : "int", "default" : -1},
+    {"name": "height","type":"int"}]
 }
 """
 

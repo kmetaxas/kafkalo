@@ -2,9 +2,9 @@ from yaml import load
 from typing import List
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import Loader
 
 from kafkalo.topics import Topic
 from kafkalo.schemas import Schema

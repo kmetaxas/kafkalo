@@ -1,7 +1,5 @@
 from typing import List
 import requests
-import json
-from requests.auth import HTTPBasicAuth
 
 
 class Client(object):
@@ -97,14 +95,14 @@ class MDSAdmin(object):
                 try:
                     r = requests.post(
                         self.url
-                        + f"/security/1.0/principals/{principal}/roles/{roleName}/bindings",
+                        + f"/security/1.0/principals/{principal}/roles/{roleName}/bindings",  # noqa: E501
                         auth=self.auth,
                         json=data,
                     )
                     r.raise_for_status()
                 except Exception as e:
                     print(
-                        f"Failed to set RBAC {roleName} for {principal} with error {r.text}"
+                        f"Failed to set RBAC {roleName} for {principal} with error {e.text}"  # noqa: E501
                     )
             else:
                 data["principal"] = principal

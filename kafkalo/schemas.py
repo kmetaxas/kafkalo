@@ -1,7 +1,5 @@
-from confluent_kafka import KafkaException
 from typing import List
 from confluent_kafka.schema_registry import Schema as CPSchema
-from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.error import SchemaRegistryError
 
 
@@ -81,8 +79,9 @@ class SchemaAdmin(object):
                     schema.subject_name, schema.schema
                 )
                 found_schemas.append(found_schema)
-            except SchemaRegistryError as e:
+            except SchemaRegistryError:
                 # TODO make sure its a 404 and not some other error
+
                 missing_schemas.append(schema)
         return missing_schemas
 
@@ -138,7 +137,7 @@ class SchemaAdmin(object):
         Set compatibility level for a Schema, if needed
         """
         global_compat = self.client.get_compatibility()["compatibilityLevel"].lower()
-        per_subject_override_exists = False
+        # per_subject_override_exists = False
         # Set compatibility of specified
         if schema.compatibility and schema.subject_name in self.subject_cache:
             compat = schema.compatibility
@@ -147,14 +146,14 @@ class SchemaAdmin(object):
                 current_compat = self.client.get_compatibility(schema.subject_name)[
                     "compatibilityLevel"
                 ].lower()
-                per_subject_override_exists = True
+                # per_subject_override_exists = True
             except SchemaRegistryError as e:
                 print(f"Got error {e}")
                 current_compat = global_compat
 
             if current_compat != compat:
                 print(
-                    f"Will update compat for {schema.subject_name} from {current_compat} to {compat}"
+                    f"Will update compat for {schema.subject_name} from {current_compat} to {compat}"  # noqa: E501
                 )
                 try:
                     if not dry_run:
@@ -167,5 +166,5 @@ class SchemaAdmin(object):
                         )
                 except SchemaRegistryError as e:
                     print(
-                        f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"
+                        f"Failed to set compatibility to '{schema.compatibility} for {schema.subject_name} with error: {e}"  # noqa: E501
                     )
