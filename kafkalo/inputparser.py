@@ -6,9 +6,9 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-from topics import Topic
-from schemas import Schema
-from clients import Client
+from kafkalo.topics import Topic
+from kafkalo.schemas import Schema
+from kafkalo.clients import Client
 from pathlib import Path
 
 

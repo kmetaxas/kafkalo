@@ -1,9 +1,9 @@
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 current = Path(__file__).parent
 env = Environment(
-    loader=FileSystemLoader(Path(current, "templates/")),
+    loader=PackageLoader("kafkalo", "templates"),
     autoescape=select_autoescape(["tmpl"]),
 )
 

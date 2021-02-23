@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # from alladmin import AllAdmin
-from topics import KafkaAdmin, Topic
-from schemas import SchemaAdmin, Schema
-from inputparser import InputParser
+from kafkalo.topics import KafkaAdmin, Topic
+from kafkalo.schemas import SchemaAdmin, Schema
+from kafkalo.inputparser import InputParser
 import yaml
-from config import Config
-from clients import MDSAdmin
-from report import Report
+from kafkalo.config import Config
+from kafkalo.clients import MDSAdmin
+from kafkalo.report import Report
 import click
 from confluent_kafka.admin import AdminClient
 from confluent_kafka.schema_registry import SchemaRegistryClient

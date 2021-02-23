@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e378c516f8981b731d394490c342c532d5e903571d94d20c096cdaea2edce33d"
+            "sha256": "f31611f593ed0b01a02afaaeeceb728e01e885af05f3b419d8112794aca10fd6"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -254,5 +254,18 @@
             "version": "==1.26.3"
         }
     },
-    "develop": {}
+    "develop": {
+        "click": {
+            "hashes": [
+                "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
+                "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
+            ],
+            "index": "pypi",
+            "version": "==7.1.2"
+        },
+        "kafkalo": {
+            "editable": true,
+            "path": "."
+        }
+    }
 }
