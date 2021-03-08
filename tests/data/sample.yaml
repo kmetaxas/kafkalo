@@ -46,3 +46,9 @@ clients:
         # It will make the producer able to write the topics but read-only
         # access to the schema registry
         strict: false
+    groups:
+      - name: consumer-produser-
+      - name: consumer-produser-owner-
+        # if not specified, roles is [DeveloperRead]
+        roles: ["ResourceOwner"]
+        prefixed: false

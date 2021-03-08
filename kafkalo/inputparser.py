@@ -167,6 +167,7 @@ class InputParser(object):
                 consumer_for=client_dict.get("consumer_for", None),
                 producer_for=client_dict.get("producer_for", None),
                 resourceowner_for=client_dict.get("resourceowner_for", None),
+                groups=client_dict.get("groups", None),
             )
             clients.append(client)
         return clients

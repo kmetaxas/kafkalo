@@ -8,7 +8,12 @@ class Client(object):
     """
 
     def __init__(
-        self, principal, consumer_for=None, producer_for=None, resourceowner_for=None
+        self,
+        principal,
+        consumer_for=None,
+        producer_for=None,
+        resourceowner_for=None,
+        groups=None,
     ):
         if ":" not in principal or principal.split(":")[0] not in ["User", "Group"]:
             raise Exception("Principal {principal} not in the form User/Group:<name>")
@@ -17,6 +22,7 @@ class Client(object):
         self.consumer_for = consumer_for
         self.producer_for = producer_for
         self.resourceowner_for = resourceowner_for
+        self.groups = groups
 
 
 class MDSAdmin(object):
@@ -156,11 +162,9 @@ class MDSAdmin(object):
             prefixed,
             dry_run=dry_run,
         )
-        # add schema registry roles.
-        # TODO don't assign DeveloperWrite on "production" so pass a parameter
-        # somehow to do only DeveloperRead for producing applications (we
-        # don't want them to be abl eto change schemas. Only write to topics)
         sr_roles = ["DeveloperRead"]
+        # If stict mode is set, don't allow develerWrite on the schema
+        # registry.
         if not strict:
             sr_roles.append("DeveloperWrite")
         self._set_rolebinding(
@@ -234,6 +238,22 @@ class MDSAdmin(object):
         print(f"rolebinding list: {result}")
         return r.json()
 
+    def do_group(self, name, principal, prefixed=True, roles=None, dry_run=False):
+        """
+        Add consumer group rolebindings
+        """
+        if not roles:
+            roles = ["DeveloperRead"]
+        self._set_rolebinding(
+            MDSAdmin.CTX_KAFKA,
+            "Group",
+            name,
+            principal,
+            roles,
+            prefixed=prefixed,
+            dry_run=dry_run,
+        )
+
     def reconcile_roles(self, clients: List[Client], dry_run=False):
         """
         Iterate over Client list and reconcile current with desired
@@ -269,5 +289,14 @@ class MDSAdmin(object):
                         topic=topic["topic"],
                         principal=principal,
                         prefixed=topic.get("prefixed", True),
+                        dry_run=dry_run,
+                    )
+            if client.groups:
+                for group in client.groups:
+                    self.do_group(
+                        name=group["name"],
+                        principal=principal,
+                        prefixed=group.get("prefixed", True),
+                        roles=group.get("roles", ["DeveloperRead"]),
                         dry_run=dry_run,
                     )
