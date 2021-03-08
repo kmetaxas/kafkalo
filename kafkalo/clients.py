@@ -137,10 +137,14 @@ class MDSAdmin(object):
             dry_run=dry_run,
         )
 
-    def do_producer_for(self, topic, principal, prefixed=True, dry_run=False):
+    def do_producer_for(
+        self, topic, principal, prefixed=True, strict=False, dry_run=False
+    ):
         """
         Convenience method that assigns a set of permisions for a typical
         producer client
+        :strict strict mode meant for production environments. give write to topic but only
+        read on schema registry
         """
         roles = ["DeveloperWrite"]
         self._set_rolebinding(
@@ -152,13 +156,19 @@ class MDSAdmin(object):
             prefixed,
             dry_run=dry_run,
         )
-        # add schema registry roles
+        # add schema registry roles.
+        # TODO don't assign DeveloperWrite on "production" so pass a parameter
+        # somehow to do only DeveloperRead for producing applications (we
+        # don't want them to be abl eto change schemas. Only write to topics)
+        sr_roles = ["DeveloperRead"]
+        if not strict:
+            sr_roles.append("DeveloperWrite")
         self._set_rolebinding(
             MDSAdmin.CTX_SR,
             "Subject",
             topic,
             principal,
-            roles,
+            sr_roles,
             prefixed,
             dry_run=dry_run,
         )
@@ -250,6 +260,7 @@ class MDSAdmin(object):
                         topic=topic["topic"],
                         principal=principal,
                         prefixed=topic.get("prefixed", True),
+                        strict=topic.get("strict", False),
                         dry_run=dry_run,
                     )
             if client.resourceowner_for:

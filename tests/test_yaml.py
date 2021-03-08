@@ -63,3 +63,17 @@ def test_resolve_patterns():
     assert isinstance(parser, InputParser)
     assert "tests/data/patterns/sample.yaml" in parser.filenames
     assert len(parser.filenames) == 1
+
+
+def test_clients():
+    """
+    test client
+    """
+    parser = InputParser(SAMPLE_PATH)
+    client_list = parser.get_clients()
+    assert isinstance(client_list, list)
+
+    clients = {x.principal: x for x in client_list}
+    assert "User:poutanaola" in clients
+    assert "Group:malakes" in clients
+    assert "User:produser" in clients

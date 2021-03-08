@@ -39,3 +39,10 @@ clients:
       - topic: TOPIC2.
     producer_for:
       - topic: TOPIC1.
+  - principal: User:produser
+    producer_for:
+      - topic: TOPIC1.
+        # Strict mode is mean for production.
+        # It will make the producer able to write the topics but read-only
+        # access to the schema registry
+        strict: false
