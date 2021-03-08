@@ -100,7 +100,7 @@ class InputParser(object):
         for topicdata in self.data["topics"]:
             schema_data = self._make_schema_dict(topicdata)
             topic = Topic(
-                name=topicdata["topic"],
+                name=topicdata["name"],
                 partitions=topicdata["partitions"],
                 replication_factor=topicdata["replication_factor"],
                 configs=topicdata.get("configs", None),

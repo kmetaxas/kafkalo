@@ -1,27 +1,25 @@
 topics:
-  - topic: SKATA.VROMIA.POLY2
+  - name: SKATA.VROMIA.POLY2
     partitions: 6
     replication_factor: 1
     configs:
       cleanup.policy: delete
       min.insync.replicas: 1
       retension.ms: 10000000
-    schema:
-      value:
-        fromFile: "tests/data/schema.json"
-        compatibility: BACKWARDS
-      key:
-        fromFile: "tests/data/schema-key.json"
-        compatibility: NONE
-  - topic: SKATA.VROMIA.LIGO2
+    value:
+      schema: "tests/data/schema.json"
+      compatibility: BACKWARDS
+    key:
+      schema: "tests/data/schema-key.json"
+      compatibility: NONE
+  - name: SKATA.VROMIA.LIGO2
     partitions: 6
     replication_factor: 3
     configs:
       cleanup.policy: delete
       min.insync.replicas: 1
-    schema:
-      key:
-        fromFile: "tests/data/schema-key.json"
+    key:
+      schema: "tests/data/schema-key.json"
 
 clients:
   - principal: User:poutanaola2

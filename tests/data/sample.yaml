@@ -1,5 +1,5 @@
 topics:
-  - topic: SKATA.VROMIA.POLY
+  - name: SKATA.VROMIA.POLY
     partitions: 6
     replication_factor: 1
     configs:
@@ -12,7 +12,7 @@ topics:
     value:
       schema: "tests/data/schema.json"
       compatibility: NONE
-  - topic: SKATA.VROMIA.LIGO
+  - name: SKATA.VROMIA.LIGO
     partitions: 6
     replication_factor: 3
     configs:
