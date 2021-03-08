@@ -16,11 +16,11 @@ def test_compatibility():
     s1 = schemas[0]
     assert isinstance(s1, Schema)
     assert s1.subject_name == "SKATA.VROMIA.POLY-key"
-    assert s1.compatibility == "none"
+    assert s1.compatibility == "backward"
     s2 = schemas[1]
     assert isinstance(s1, Schema)
     assert s2.subject_name == "SKATA.VROMIA.POLY-value"
-    assert s2.compatibility == "backward"
+    assert s2.compatibility == "none"
 
 
 def test_client():

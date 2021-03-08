@@ -69,6 +69,28 @@ class InputParser(object):
                 filenames += [x for x in p.parent.glob(p.stem) if not Path(x).is_dir()]
         return filenames
 
+    def _make_schema_dict(self, topic_data):
+        """
+        Given a topic definition dictionary, get the 'key' and 'schema' keys
+        and merge them into a new 'schema' key suitable for Topic object
+        """
+        schema = {}
+
+        if "key" in topic_data:
+            schema["key"] = {
+                "fromFile": topic_data["key"]["schema"],
+                "compatibility": topic_data["key"].get("compatibility", None),
+            }
+        if "value" in topic_data:
+            schema["value"] = {
+                "fromFile": topic_data["value"]["schema"],
+                "compatibility": topic_data["value"].get("compatibility", None),
+            }
+        if schema.keys():
+            return schema
+        else:
+            return None
+
     def get_topics(self):
         """
         Return a list o Topic objects found in the input YAML.
@@ -76,12 +98,13 @@ class InputParser(object):
         # TODO make this a generator as they number of topics could be big.
         resp = []
         for topicdata in self.data["topics"]:
+            schema_data = self._make_schema_dict(topicdata)
             topic = Topic(
                 name=topicdata["topic"],
                 partitions=topicdata["partitions"],
                 replication_factor=topicdata["replication_factor"],
                 configs=topicdata.get("configs", None),
-                schema=topicdata.get("schema", None),
+                schema=schema_data,
             )
             resp.append(topic)
         return resp
@@ -119,6 +142,16 @@ class InputParser(object):
                                 compatibility=compatibility,
                             )
                             schemas.append(schema)
+        return schemas
+
+    def get_schemas_as_dict(self):
+        """
+        Get the schemas as a dictionary with the subject_name being the key
+        """
+        schema_list = self.get_schemas()
+        schemas = {}
+        for schema in schema_list:
+            schemas[schema.subject_name] = schema
         return schemas
 
     def get_clients(self):

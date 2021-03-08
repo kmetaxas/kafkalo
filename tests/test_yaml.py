@@ -28,22 +28,22 @@ def test_inputparser_get_topics():
     assert topics[0].configs["min.insync.replicas"] == 1
     assert topics[0].configs["retention.ms"] == 10000000
     assert topics[0].schema["value"]["fromFile"] == "tests/data/schema.json"
-    assert topics[0].schema["value"]["compatibility"] == "BACKWARD"
+    assert topics[0].schema["value"]["compatibility"] == "NONE"
     assert topics[0].schema["key"]["fromFile"] == "tests/data/schema-key.json"
-    assert topics[0].schema["key"]["compatibility"] == "NONE"
+    assert topics[0].schema["key"]["compatibility"] == "BACKWARD"
 
 
 def test_inputparser_get_schemas():
     parser = InputParser(SAMPLE_PATH)
-    schemas = parser.get_schemas()
-    for schema in schemas:
+    schemas = parser.get_schemas_as_dict()
+    for schema in schemas.values():
         assert isinstance(schema, Schema)
-    assert schemas[0].subject_name == "SKATA.VROMIA.POLY-key"
-    assert schemas[1].subject_name == "SKATA.VROMIA.POLY-value"
+    assert schemas["SKATA.VROMIA.POLY-key"].subject_name == "SKATA.VROMIA.POLY-key"
+    assert schemas["SKATA.VROMIA.POLY-value"].subject_name == "SKATA.VROMIA.POLY-value"
     # Topic 1 has not compatibility set
-    assert schemas[0].compatibility == "none"
-    assert schemas[1].compatibility == "backward"
-    assert schemas[2].compatibility is None
+    assert schemas["SKATA.VROMIA.POLY-value"].compatibility == "none"
+    assert schemas["SKATA.VROMIA.POLY-key"].compatibility == "backward"
+    assert schemas["SKATA.VROMIA.LIGO-key"].compatibility is None
 
 
 def test_resolve_patterns():
