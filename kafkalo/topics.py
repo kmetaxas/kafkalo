@@ -94,6 +94,8 @@ class KafkaAdmin(object):
         """
         Create topics
         """
+        if not topics:
+            return ({}, {})
         # Lets create a dictionary of topic_name:Topic obj to make lookups
         # easier
         topics_dict = {x.name: x for x in topics}
@@ -143,6 +145,23 @@ class KafkaAdmin(object):
         else:
             self.dry_run_plan[topic].update(data)
 
+    def _sanitize_topic_config(self, config: dict):
+        """
+        Perform some basic sanity checks on the topic config and
+        return a sanitized config dictionary
+        """
+        # Right now we will remove the following keys as we have run into an
+        # issue where the broker respond with these in the existing config but
+        # will not recogize them sent back.
+        banned_settings = [
+            "confluent.ssl.truststore.password",
+            "confluent.ssl.truststore.location",
+        ]
+        for setting in banned_settings:
+            if setting in config:
+                del config[setting]
+        return config
+
     def alter_config_for_topic(self, topic: Topic, dry_run=False):
         """
         Alter the configuration of a single topic
@@ -156,6 +175,7 @@ class KafkaAdmin(object):
         new_config = existing_config.copy()
         # And update with changed values to get real new config
         new_config.update(topic.configs)
+        new_config = self._sanitize_topic_config(new_config)
         # get a config delta
         config_delta = self._get_config_diff(existing_config, new_config)
 
