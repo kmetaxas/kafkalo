@@ -41,6 +41,13 @@ class SchemaAdmin(object):
         # 'updated'. 'compatibility': {"old":str, "new":str}
         self.dry_run_plan = {}
         self._populate_subject_cache()
+        self.global_compat = self._get_global_compat()
+
+    def _get_global_compat(self):
+        """
+        Geth the global compatibility setting of the schema registry
+        """
+        global_compat = self.client.get_compatibility()["compatibilityLevel"].lower()
 
     def _populate_subject_cache(self):
         """
@@ -136,7 +143,7 @@ class SchemaAdmin(object):
         """
         Set compatibility level for a Schema, if needed
         """
-        global_compat = self.client.get_compatibility()["compatibilityLevel"].lower()
+        global_compat = self.global_compat
         # per_subject_override_exists = False
         # Set compatibility of specified
         if schema.compatibility and schema.subject_name in self.subject_cache:
