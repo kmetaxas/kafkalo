@@ -19,7 +19,9 @@ class Config(object):
     Read configuration
     """
 
-    def __init__(self, filename="config.yaml"):
+    def __init__(self, filename):
+        if not filename:
+            raise Exception("No filename provided for Config object")
         self.config = self._parse_yaml(filename)
         # TODO config logging
 

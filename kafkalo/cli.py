@@ -23,14 +23,19 @@ def cli():
     default=False,
     help="Don't change anything but do a dry run",
 )
-def sync(dry_run):
+@click.option(
+    "--config",
+    required=True,
+    help="Config yaml file for kafkalo",
+)
+def sync(dry_run, config):
     """
     Synchronize Kafka config to YAML files
     """
-    config = Config()
-    topic_admin, schema_admin, mds_admin = get_admin_clients(config)
+    configuration = Config(filename=config)
+    topic_admin, schema_admin, mds_admin = get_admin_clients(configuration)
     # Reconcile topics
-    parser = InputParser(config.get_input_patterns())
+    parser = InputParser(configuration.get_input_patterns())
     topic_admin.reconcile_topics(parser.get_topics(), dry_run=dry_run)
     topics_context = topic_admin.get_dry_run_plan()
     # Reconcile schemas
@@ -53,11 +58,16 @@ def sync(dry_run):
 
 @click.command()
 @click.pass_context
-def plan(ctx):
+@click.option(
+    "--config",
+    required=True,
+    help="Config yaml file for kafkalo",
+)
+def plan(ctx, config):
     """
     Generate a plan. This is equivalent to sync --dry-run
     """
-    ctx.invoke(sync, dry_run=True)
+    ctx.invoke(sync, dry_run=True, config=config)
 
 
 def get_admin_clients(config):
