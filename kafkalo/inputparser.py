@@ -40,7 +40,11 @@ class InputParser(object):
         merged_data = {}
         for filename in filenames:
             with open(filename, "r") as fp:
-                data = load(fp.read(), Loader=Loader)
+                try:
+                    data = load(fp.read(), Loader=Loader)
+                except Exception as e:
+                    print(f"Failed to open file {filename} with error: {e}")
+                    continue
                 # Now merge the keys
                 for key, values in data.items():
                     if key not in merged_data:
