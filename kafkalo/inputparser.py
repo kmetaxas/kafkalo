@@ -34,6 +34,9 @@ class InputParser(object):
         """
         Load files and merge them into a big dictionary
         """
+        if not filenames:
+            print("No input files available!")
+            return {}
         merged_data = {}
         for filename in filenames:
             with open(filename, "r") as fp:
@@ -97,6 +100,9 @@ class InputParser(object):
         """
         # TODO make this a generator as they number of topics could be big.
         resp = []
+        if "topics" not in self.data:
+            print("topics key not found in input")
+            return resp
         for topicdata in self.data["topics"]:
             schema_data = self._make_schema_dict(topicdata)
             topic = Topic(
