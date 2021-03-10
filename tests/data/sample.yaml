@@ -7,10 +7,10 @@ topics:
       min.insync.replicas: 1
       retention.ms: 10000000
     key:
-      schema: "tests/data/schema-key.json"
+      schema: "schema-key.json"
       compatibility: BACKWARD
     value:
-      schema: "tests/data/schema.json"
+      schema: "schema.json"
       compatibility: NONE
   - name: SKATA.VROMIA.LIGO
     partitions: 6
@@ -19,7 +19,7 @@ topics:
       cleanup.policy: delete
       min.insync.replicas: 1
     key:
-      schema: "tests/data/schema-key.json"
+      schema: "schema-key.json"
 
 clients:
   - principal: User:poutanaola

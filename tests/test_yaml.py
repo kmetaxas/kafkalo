@@ -27,9 +27,9 @@ def test_inputparser_get_topics():
     assert topics[0].configs["cleanup.policy"] == "delete"
     assert topics[0].configs["min.insync.replicas"] == 1
     assert topics[0].configs["retention.ms"] == 10000000
-    assert topics[0].schema["value"]["fromFile"] == "tests/data/schema.json"
+    assert topics[0].schema["value"]["fromFile"] == "schema.json"
     assert topics[0].schema["value"]["compatibility"] == "NONE"
-    assert topics[0].schema["key"]["fromFile"] == "tests/data/schema-key.json"
+    assert topics[0].schema["key"]["fromFile"] == "schema-key.json"
     assert topics[0].schema["key"]["compatibility"] == "BACKWARD"
 
 

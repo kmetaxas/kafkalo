@@ -27,6 +27,7 @@ class InputParser(object):
     """
 
     def __init__(self, patterns: List[str]):
+        self.patterns = patterns
         self.filenames = self._resolve_patterns(patterns)
         self.data = self._load_and_merge(self.filenames)
 
@@ -119,6 +120,42 @@ class InputParser(object):
             resp.append(topic)
         return resp
 
+    def _load_avsc(self, filepath):
+        """
+        Load an avsc file relative to the YAML it is referenced in.
+        If an absolute path is provided, load it. Otherwise search relative to input_dirs paths.
+        """
+        # Identify the parent folder to use
+        filepath = Path(filepath)
+        if filepath.is_absolute() and filepath.exists():
+            with open(filepath, "r") as fp:
+                return fp.read()
+        # Not absolute path. Figure out all possible parents for relative path
+        base_dirs = []
+        for pattern in self.patterns:
+            path = Path(pattern).absolute()
+            if path.is_dir():
+                base_dirs.append(path)
+            elif path.parent.is_dir():
+                base_dirs.append(path.parent)
+            else:
+                # Uhm, what now?
+                pass
+        found = None
+        for base_dir in base_dirs:
+            candidate = Path(base_dir, filepath)
+            if candidate.is_absolute() and candidate.exists():
+                if not found:
+                    found = candidate
+                else:
+                    raise DuplicateResourceException(
+                        f"Schema {filepath} found in multiple locations",
+                    )
+        if not found:
+            raise Exception(f"Schema {filepath} not found")
+        with open(found) as fp:
+            return fp.read()
+
     def get_schemas(self):
         topics = self.get_topics()
         schemas = []
@@ -127,31 +164,25 @@ class InputParser(object):
                 if "key" in topic.schema:
                     filename = topic.schema["key"].get("fromFile", None)
                     if filename:
-                        with open(filename, "r") as fp:
-                            schema_data = fp.read()
-                            compatibility = topic.schema["key"].get(
-                                "compatibility", None
-                            )
-                            schema = Schema(
-                                subject_name=f"{topic.name}-key",
-                                schema=schema_data,
-                                compatibility=compatibility,
-                            )
-                            schemas.append(schema)
+                        schema_data = self._load_avsc(filename)
+                        compatibility = topic.schema["key"].get("compatibility", None)
+                        schema = Schema(
+                            subject_name=f"{topic.name}-key",
+                            schema=schema_data,
+                            compatibility=compatibility,
+                        )
+                        schemas.append(schema)
                 if "value" in topic.schema:
                     filename = topic.schema["value"].get("fromFile", None)
                     if filename:
-                        with open(filename, "r") as fp:
-                            schema_data = fp.read()
-                            compatibility = topic.schema["value"].get(
-                                "compatibility", None
-                            )
-                            schema = Schema(
-                                subject_name=f"{topic.name}-value",
-                                schema=schema_data,
-                                compatibility=compatibility,
-                            )
-                            schemas.append(schema)
+                        schema_data = self._load_avsc(filename)
+                        compatibility = topic.schema["value"].get("compatibility", None)
+                        schema = Schema(
+                            subject_name=f"{topic.name}-value",
+                            schema=schema_data,
+                            compatibility=compatibility,
+                        )
+                        schemas.append(schema)
         return schemas
 
     def get_schemas_as_dict(self):
