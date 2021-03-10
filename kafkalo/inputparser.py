@@ -71,10 +71,10 @@ class InputParser(object):
             p = Path(pattern)
             # TODO handle case where we get a specific file and not a glob
             # pattern as a stem
-            if "*" not in p.stem:
+            if "*" not in p.name:
                 filenames.append(pattern)
             else:
-                filenames += [x for x in p.parent.glob(p.stem) if not Path(x).is_dir()]
+                filenames += [x for x in p.parent.glob(p.name) if not Path(x).is_dir()]
         return filenames
 
     def _make_schema_dict(self, topic_data):
