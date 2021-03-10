@@ -162,17 +162,24 @@ class KafkaAdmin(object):
                 del config[setting]
         return config
 
-    def alter_config_for_topic(self, topic: Topic, dry_run=False):
+    def alter_config_for_topic(
+        self, topic: Topic, dry_run=False, respect_existing_config=False
+    ):
         """
-        Alter the configuration of a single topic
+        Alter the configuration of a single topic.
+        :topic a Topic instance
+        :respect_existing_config merge existing conig into new
+        :dry_run perform dry-run only
         """
 
+        new_config = {}
         # First get existing configs.. so really "old config" at this stage
         existing_config = {
             val.name: val.value
             for (key, val) in self.describe_topic(topic.name).items()
         }
-        new_config = existing_config.copy()
+        if respect_existing_config:
+            new_config.update(existing_config)
         # And update with changed values to get real new config
         new_config.update(topic.configs)
         new_config = self._sanitize_topic_config(new_config)
