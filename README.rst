@@ -1,7 +1,10 @@
 Kafkalo - A Tool to manage Confluent Kafka
 ==========================================
 
+
 Kafkalo is a tool to manage Kafka and Confluent Platform.
+
+*STATUS: while it does work, it is very rough around the edges. Consider this unstable and unreleased software for now.*
 
 It manages:
 
