@@ -131,6 +131,9 @@ class SchemaAdmin(object):
         failed_to_register = {}
         registered = []
         for schema in update_subjects:
+            # Set compatibility before registering to ensure we don't get
+            # compatibility errors if compat has changed.
+            self.set_compatibility(schema, dry_run=dry_run)
             # Register schema
             created, error = self.update_or_create_schema(schema, dry_run=dry_run)
             if created:
