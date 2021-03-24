@@ -71,6 +71,19 @@ class SchemaAdmin(object):
         if data:
             self.dry_run_plan[schema.subject_name].update(data)
 
+    def lookup_schema(self, schema):
+        """
+        Wrappper around SchemaRegistryClient.lookup_schema that accepts Schema
+        object.
+        Returns tuple (True, RegisteredSchema) if success or (False, Error)
+        otherwise
+        """
+        try:
+            registered = self.client.lookup_schema(schema.subject_name, schema.schema)
+            return (True, registered)
+        except SchemaRegistryError as e:
+            return (False, e)
+
     def get_subjects_to_update(self, schemas: List[Schema]):
         """
         Return a list of schemas that need updating.
