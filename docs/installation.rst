@@ -23,6 +23,10 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
+The default `confluent python`_ package bundles librdkafka without GSSAPI support. If you need GSSAPI support follow the documentation in the confluent python page. 
+This typically requires you to install gcc+dev tools, librdkafka headers and python headers and run: `pip install --no-binary :all: confluent-kafka`
+
+
 From sources
 ------------
 
@@ -49,3 +53,4 @@ Once you have a copy of the source, you can install it with:
 
 .. _Github repo: https://github.com/kmetaxas/kafkalo
 .. _tarball: https://github.com/kmetaxas/kafkalo/tarball/master
+.. _confluent python: https://github.com/confluentinc/confluent-kafka-python#install
