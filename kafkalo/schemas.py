@@ -153,7 +153,6 @@ class SchemaAdmin(object):
                 registered.append(created)
             if error:
                 failed_to_register.update({schema.subject_name: error})
-            self.set_compatibility(schema, dry_run=dry_run)
 
     def set_compatibility(self, schema: Schema, dry_run=False):
         """
