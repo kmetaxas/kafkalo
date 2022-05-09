@@ -1,10 +1,11 @@
 Kafkalo - A Tool to manage Confluent Kafka
 ==========================================
 
+**STATUS: This project has been replaced by [Gafkalo](https://github.com/kmetaxas/gafkalo/).**
+It will be archived. 
 
 Kafkalo is a tool to manage Kafka and Confluent Platform.
 
-*STATUS: while it does work, it is very rough around the edges. Consider this unstable and unreleased software for now.*
 
 It manages:
 
